@@ -1,0 +1,12 @@
+column,type,description,n_unique,n_missing,pct_missing,levels
+adrc_id,ID,ADRC participant unique identifier,618,0,0,
+pidn,ID,Participant identification number,618,0,0,
+year_quarter,categorical,"Year and quarter of sample collection, derived from blood draw date (format: YYYY_Q)",37,0,0,2015_3 ; 2015_4 ; 2016_1 ; 2016_2 ; 2016_3 ; 2016_4 ; 2017_1 ; 2017_2 ; 2017_3 ; 2017_4 ; 2018_1 ; 2018_2 ; 2018_3 ; 2018_4 ; 2019_1 ; 2019_2 ; 2019_3 ; 2019_4 ; 2020_1 ; 2020_3 ; 2020_4 ; 2021_1 ; 2021_2 ; 2021_3 ; 2021_4 ; 2022_1 ; 2022_2 ; 2022_3 ; 2022_4 ; 2023_1 ; 2023_2 ; 2023_3 ; 2023_4 ; 2024_1 ; 2024_2 ; 2024_3 ; 2024_4
+visit_number,numeric,Visit number assigned by matching blood draw date to the closest visit date,9,0,0,
+PTAU217,numeric,Phosphorylated tau 217 (pTau-217) plasma concentration; a high-sensitivity blood-based biomarker for Alzheimer's disease-related tau pathology,503,68,5.56,
+PTAU181,numeric,Phosphorylated tau 181 (pTau-181) plasma concentration; a biomarker associated with Alzheimer's disease tau pathology (higher missingness than pTau-217),295,421,34.4,
+AB142P,numeric,Amyloid beta 42 (Aβ42) plasma concentration; lower levels are associated with amyloid plaque burden in the brain,748,302,24.67,
+AB140P,numeric,Amyloid beta 40 (Aβ40) plasma concentration; used as a reference denominator for the Aβ42/Aβ40 ratio,892,302,24.67,
+ab_ratio,numeric,Aβ42/Aβ40 ratio; composite plasma biomarker of amyloid burden — lower values indicate higher cerebral amyloid deposition,922,302,24.67,
+GFAP,numeric,Glial fibrillary acidic protein (GFAP) plasma concentration; a marker of astrocyte activation and neuroinflammation,715,68,5.56,
+NFL,numeric,"Neurofilament light chain (NfL) plasma concentration; a marker of neuro-axonal damage, elevated across multiple neurodegenerative diseases",758,68,5.56,

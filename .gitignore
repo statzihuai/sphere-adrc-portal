@@ -1,0 +1,9 @@
+# scRNAseq CSV is 1.1GB — exceeds GitHub's 100MB file limit.
+# Download separately from Stanford Digital Repository:
+# https://purl.stanford.edu/sm297vv5829
+portal/data/sphere/scrna.csv
+
+# macOS
+.DS_Store
+__pycache__/
+*.pyc

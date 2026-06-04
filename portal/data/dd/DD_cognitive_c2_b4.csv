@@ -1,0 +1,83 @@
+column,type,description,Form,Section,Description,Valid_Range_Options,Special_Missing_Codes,n_unique,n_missing,pct_missing
+adrc_id,other,ADRC participant unique identifier,,,,,,664,0,0
+c2_completed,other,Completion status of the C2 Neuropsychological Battery form,C2 - Neuropsychological Battery,—,-,"0=Incomplete, 1=Unverified, 2=Complete","",3,0,0
+b4_completed,other,Completion status of the B4 Global Staging / CDR form,B4 - Global Staging / CDR,Global Staging,Form status,"0=Incomplete, 1=Unverified, 2=Complete","",2,0,0
+visit_number,other,Visit number from REDCap event name (no date-based assignment needed for this dataset),,,,,,10,0,0
+c2_mocacomp,binary,1a. Was any part of the MoCA administered?,C2 - Neuropsychological Battery,MoCA,1a. Was any part of the MoCA administered?,"0=No, 1=Yes","",2,1051,41.72
+c2_mocareas,other,1a. Reason MoCA not administered,C2 - Neuropsychological Battery,MoCA,1a. Reason MoCA not administered,"","95=Physical, 96=Cognitive/behavior, 97=Other, 98=Verbal refusal",0,2519,100
+c2_mocaloc,other,1b. Location of MoCA administration,C2 - Neuropsychological Battery,MoCA,1b. Location of MoCA administration,"1=ADC/clinic, 2=Home, 3=In person (other)","",3,1083,42.99
+c2_mocalan,other,1c. Language of MoCA administration,C2 - Neuropsychological Battery,MoCA,1c. Language of MoCA administration,"1=English, 2=Spanish, 3=Other","",3,1083,42.99
+c2_mocavis,binary,1d. Unable to complete due to visual impairment,C2 - Neuropsychological Battery,MoCA,1d. Unable to complete due to visual impairment,"0=No, 1=Yes","",2,1083,42.99
+c2_mocahear,binary,1e. Unable to complete due to hearing impairment,C2 - Neuropsychological Battery,MoCA,1e. Unable to complete due to hearing impairment,"0=No, 1=Yes","",2,1084,43.03
+c2_mocatots,numeric,1f. Total raw score (uncorrected),C2 - Neuropsychological Battery,MoCA,1f. Total raw score (uncorrected),0-30,88=Items not administered,31,1098,43.59
+c2_mocatrai,numeric,1g. Visuospatial/executive - Trails,C2 - Neuropsychological Battery,MoCA,1g. Visuospatial/executive - Trails,0-1,95-98,2,1095,43.47
+c2_mocacube,numeric,1h. Visuospatial/executive - Cube,C2 - Neuropsychological Battery,MoCA,1h. Visuospatial/executive - Cube,0-1,95-98,2,1095,43.47
+c2_mocacloc,numeric,1i. Visuospatial/executive - Clock contour,C2 - Neuropsychological Battery,MoCA,1i. Visuospatial/executive - Clock contour,0-1,95-98,2,1095,43.47
+c2_mocaclon,numeric,1j. Visuospatial/executive - Clock numbers,C2 - Neuropsychological Battery,MoCA,1j. Visuospatial/executive - Clock numbers,0-1,95-98,2,1095,43.47
+c2_mocacloh,numeric,1k. Visuospatial/executive - Clock hands,C2 - Neuropsychological Battery,MoCA,1k. Visuospatial/executive - Clock hands,0-1,95-98,3,1095,43.47
+c2_mocanami,numeric,1l. Language - Naming,C2 - Neuropsychological Battery,MoCA,1l. Language - Naming,0-3,95-98,5,1094,43.43
+c2_mocaregi,numeric,1m. Memory - Registration (two trials),C2 - Neuropsychological Battery,MoCA,1m. Memory - Registration (two trials),0-10,95-98,11,1096,43.51
+c2_mocadigi,numeric,1n. Attention - Digits,C2 - Neuropsychological Battery,MoCA,1n. Attention - Digits,0-2,95-98,3,1095,43.47
+c2_mocalett,numeric,1o. Attention - Letter A,C2 - Neuropsychological Battery,MoCA,1o. Attention - Letter A,0-1,95-98,3,1095,43.47
+c2_mocaser7,numeric,1p. Attention - Serial 7s,C2 - Neuropsychological Battery,MoCA,1p. Attention - Serial 7s,0-3,95-98,5,1095,43.47
+c2_mocarepe,numeric,1q. Language - Repetition,C2 - Neuropsychological Battery,MoCA,1q. Language - Repetition,0-2,95-98,3,1096,43.51
+c2_mocaflue,numeric,1r. Language - Fluency,C2 - Neuropsychological Battery,MoCA,1r. Language - Fluency,0-1,95-98,3,1095,43.47
+c2_mocaabst,numeric,1s. Abstraction,C2 - Neuropsychological Battery,MoCA,1s. Abstraction,0-2,95-98,4,1095,43.47
+c2_mocarecn,numeric,1t. Delayed recall - No cue,C2 - Neuropsychological Battery,MoCA,1t. Delayed recall - No cue,0-5,95-98,6,1098,43.59
+c2_mocarecc,numeric,1u. Delayed recall - Category cue,C2 - Neuropsychological Battery,MoCA,1u. Delayed recall - Category cue,0-5,88=Not applicable,6,1473,58.48
+c2_mocarecr,numeric,1v. Delayed recall - Recognition,C2 - Neuropsychological Battery,MoCA,1v. Delayed recall - Recognition,0-5,88=Not applicable,6,1759,69.83
+c2_mocaordt,numeric,1w. Orientation - Date,C2 - Neuropsychological Battery,MoCA,1w. Orientation - Date,0-1,95-98,2,1096,43.51
+c2_mocaormo,numeric,1x. Orientation - Month,C2 - Neuropsychological Battery,MoCA,1x. Orientation - Month,0-1,95-98,2,1096,43.51
+c2_mocaoryr,numeric,1y. Orientation - Year,C2 - Neuropsychological Battery,MoCA,1y. Orientation - Year,0-1,95-98,2,1096,43.51
+c2_mocaordy,numeric,1z. Orientation - Day,C2 - Neuropsychological Battery,MoCA,1z. Orientation - Day,0-1,95-98,2,1096,43.51
+c2_mocaorpl,numeric,1aa. Orientation - Place,C2 - Neuropsychological Battery,MoCA,1aa. Orientation - Place,0-1,95-98,2,1096,43.51
+c2_mocaorct,numeric,1bb. Orientation - City,C2 - Neuropsychological Battery,MoCA,1bb. Orientation - City,0-1,95-98,2,1096,43.51
+c2_npsycloc,other,2a. Location of neuropsychological test administration,C2 - Neuropsychological Battery,Neuropsych Exam,2a. Location of neuropsychological test administration,"1=ADC/clinic, 2=Home, 3=In person (other)","",3,1051,41.72
+c2_npsylan,other,2b. Language of test administration,C2 - Neuropsychological Battery,Neuropsych Exam,2b. Language of test administration,"1=English, 2=Spanish, 3=Other","",2,1051,41.72
+c2_craftvrs,numeric,"3a. Story units recalled, verbatim scoring",C2 - Neuropsychological Battery,Craft Story (Immediate),"3a. Story units recalled, verbatim scoring",0-44,95-98,40,1141,45.3
+c2_crafturs,numeric,"3b. Story units recalled, paraphrase scoring",C2 - Neuropsychological Battery,Craft Story (Immediate),"3b. Story units recalled, paraphrase scoring",0-25,"",26,1141,45.3
+c2_udsbentc,numeric,4a. Total score for copy of Benson figure,C2 - Neuropsychological Battery,Benson Figure Copy,4a. Total score for copy of Benson figure,0-17,95-98,18,1135,45.06
+c2_digforct,numeric,5a. Number of correct trials,C2 - Neuropsychological Battery,Number Span Forward,5a. Number of correct trials,0-14,95-98,15,1139,45.22
+c2_digforsl,numeric,5b. Longest span forward,C2 - Neuropsychological Battery,Number Span Forward,5b. Longest span forward,"0, 3-9","",8,1139,45.22
+c2_digbacct,numeric,6a. Number of correct trials,C2 - Neuropsychological Battery,Number Span Backward,6a. Number of correct trials,0-14,95-98,15,1139,45.22
+c2_digbacls,numeric,6b. Longest span backward,C2 - Neuropsychological Battery,Number Span Backward,6b. Longest span backward,"0, 2-8","",8,1139,45.22
+c2_animals,numeric,7a. Animals named in 60 seconds,C2 - Neuropsychological Battery,Category Fluency,7a. Animals named in 60 seconds,0-77,95-98,42,1131,44.9
+c2_veg,numeric,7b. Vegetables named in 60 seconds,C2 - Neuropsychological Battery,Category Fluency,7b. Vegetables named in 60 seconds,0-77,95-98,30,1133,44.98
+c2_traila,numeric,8a. Part A: Seconds to complete (max 150),C2 - Neuropsychological Battery,Trail Making,8a. Part A: Seconds to complete (max 150),0-150,995-998,104,1198,47.56
+c2_trailarr,numeric,8a1. Part A: Commission errors,C2 - Neuropsychological Battery,Trail Making,8a1. Part A: Commission errors,0-40,"",4,1198,47.56
+c2_trailali,numeric,8a2. Part A: Correct lines,C2 - Neuropsychological Battery,Trail Making,8a2. Part A: Correct lines,0-24,"",14,1198,47.56
+c2_trailb,numeric,8b. Part B: Seconds to complete (max 300),C2 - Neuropsychological Battery,Trail Making,8b. Part B: Seconds to complete (max 300),0-300,995-998,195,1233,48.95
+c2_trailbrr,numeric,8b1. Part B: Commission errors,C2 - Neuropsychological Battery,Trail Making,8b1. Part B: Commission errors,0-40,"",11,1233,48.95
+c2_trailbli,numeric,8b2. Part B: Correct lines,C2 - Neuropsychological Battery,Trail Making,8b2. Part B: Correct lines,0-24,"",25,1233,48.95
+c2_craftdvr,numeric,"9a. Story units recalled, verbatim scoring",C2 - Neuropsychological Battery,Craft Story (Delayed),"9a. Story units recalled, verbatim scoring",0-44,95-98,38,1147,45.53
+c2_craftdre,numeric,"9b. Story units recalled, paraphrase scoring",C2 - Neuropsychological Battery,Craft Story (Delayed),"9b. Story units recalled, paraphrase scoring",0-25,"",26,1147,45.53
+c2_craftdti,numeric,9c. Delay time (minutes),C2 - Neuropsychological Battery,Craft Story (Delayed),9c. Delay time (minutes),0-85,99=Unknown,30,1147,45.53
+c2_craftcue,binary,9d. Cue ('boy') needed,C2 - Neuropsychological Battery,Craft Story (Delayed),9d. Cue ('boy') needed,"0=No, 1=Yes","",2,1147,45.53
+c2_udsbentd,numeric,10a. Score after delay,C2 - Neuropsychological Battery,Benson Figure Recall,10a. Score after delay,0-17,95-98,18,1142,45.34
+c2_udsbenrs,binary,10b. Recognized original from 4 options,C2 - Neuropsychological Battery,Benson Figure Recall,10b. Recognized original from 4 options,"0=No, 1=Yes","",2,1142,45.34
+c2_minttots,numeric,11a. Total score,C2 - Neuropsychological Battery,MINT,11a. Total score,0-32,95-98,27,1203,47.76
+c2_minttotw,numeric,11b. Correct without semantic cue,C2 - Neuropsychological Battery,MINT,11b. Correct without semantic cue,0-32,"",27,1203,47.76
+c2_mintscng,numeric,11c. Semantic cues given,C2 - Neuropsychological Battery,MINT,11c. Semantic cues given,0-32,"",18,1203,47.76
+c2_mintscnc,numeric,11d. Correct with semantic cue,C2 - Neuropsychological Battery,MINT,11d. Correct with semantic cue,0-32,88=Not applicable,17,1806,71.7
+c2_mintpcng,numeric,11e. Phonemic cues given,C2 - Neuropsychological Battery,MINT,11e. Phonemic cues given,0-32,"",22,1203,47.76
+c2_mintpcnc,numeric,11f. Correct with phonemic cue,C2 - Neuropsychological Battery,MINT,11f. Correct with phonemic cue,0-32,88=Not applicable,16,1755,69.67
+c2_udsverfc,numeric,12a. Correct F-words in 1 min,C2 - Neuropsychological Battery,Verbal Fluency,12a. Correct F-words in 1 min,0-40,95-98,34,1127,44.74
+c2_udsverfn,numeric,12b. F-word repetitions in 1 min,C2 - Neuropsychological Battery,Verbal Fluency,12b. F-word repetitions in 1 min,0-15,"",9,1127,44.74
+c2_udsvernf,numeric,12c. Non-F-words / rule violations in 1 min,C2 - Neuropsychological Battery,Verbal Fluency,12c. Non-F-words / rule violations in 1 min,0-15,"",11,1127,44.74
+c2_udsverlc,numeric,12d. Correct L-words in 1 min,C2 - Neuropsychological Battery,Verbal Fluency,12d. Correct L-words in 1 min,0-40,"",30,1143,45.38
+c2_udsverlr,numeric,12e. L-word repetitions in 1 min,C2 - Neuropsychological Battery,Verbal Fluency,12e. L-word repetitions in 1 min,0-15,"",9,1143,45.38
+c2_udsverln,numeric,12f. Non-L-words / rule violations in 1 min,C2 - Neuropsychological Battery,Verbal Fluency,12f. Non-L-words / rule violations in 1 min,0-15,"",8,1143,45.38
+c2_udsvertn,numeric,12g. Total correct F + L words,C2 - Neuropsychological Battery,Verbal Fluency,12g. Total correct F + L words,0-80,"",57,1143,45.38
+c2_udsverte,numeric,12h. Total F + L repetition errors,C2 - Neuropsychological Battery,Verbal Fluency,12h. Total F + L repetition errors,0-30,"",14,1143,45.38
+c2_udsverti,numeric,12i. Total non-F/L and rule violation errors,C2 - Neuropsychological Battery,Verbal Fluency,12i. Total non-F/L and rule violation errors,0-30,"",13,1143,45.38
+c2_cogstat,other,13a. Clinician's opinion on cognitive status,C2 - Neuropsychological Battery,Overall Appraisal,13a. Clinician's opinion on cognitive status,"0=Unable to render, 1=Better than normal, 2=Normal, 3=1-2 scores abnormal, 4=3+ scores abnormal","",5,1057,41.96
+b4_memory,numeric,1. Memory,B4 - Global Staging / CDR,CDR,1. Memory,"0=None, 0.5=Questionable, 1=Mild, 2=Moderate, 3=Severe","",5,2,0.08
+b4_orient,numeric,2. Orientation,B4 - Global Staging / CDR,CDR,2. Orientation,"0=None, 0.5=Questionable, 1=Mild, 2=Moderate, 3=Severe","",5,2,0.08
+b4_judgment,numeric,3. Judgment and problem solving,B4 - Global Staging / CDR,CDR,3. Judgment and problem solving,"0=None, 0.5=Questionable, 1=Mild, 2=Moderate, 3=Severe","",5,2,0.08
+b4_commun,numeric,4. Community affairs,B4 - Global Staging / CDR,CDR,4. Community affairs,"0=None, 0.5=Questionable, 1=Mild, 2=Moderate, 3=Severe","",5,2,0.08
+b4_homehobb,numeric,5. Home and hobbies,B4 - Global Staging / CDR,CDR,5. Home and hobbies,"0=None, 0.5=Questionable, 1=Mild, 2=Moderate, 3=Severe","",5,2,0.08
+b4_perscare,numeric,6. Personal care,B4 - Global Staging / CDR,CDR,6. Personal care,"0=None, 0.5=Questionable, 1=Mild, 2=Moderate, 3=Severe","",4,2,0.08
+b4_cdrsum,numeric,7. CDR Sum of Boxes,B4 - Global Staging / CDR,CDR,7. CDR Sum of Boxes,0-18,"",31,4,0.16
+b4_cdrglob,numeric,8. Global CDR,B4 - Global Staging / CDR,CDR,8. Global CDR,"0, 0.5, 1, 2, 3","",6,4,0.16
+b4_comport,numeric,"9. Behavior, comportment, personality",B4 - Global Staging / CDR,CDR,"9. Behavior, comportment, personality","0=None, 0.5=Questionable, 1=Mild, 2=Moderate, 3=Severe","",5,1,0.04
+b4_cdrlang,numeric,10. Language,B4 - Global Staging / CDR,CDR,10. Language,"0=None, 0.5=Questionable, 1=Mild, 2=Moderate, 3=Severe","",5,1,0.04

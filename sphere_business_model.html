@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPHERE — Business Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=Source+Sans+3:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:        #faf7f2;
+    --bg-card:   #ffffff;
+    --bg-tinted: #f2ede3;
+    --ink:       #1a1817;
+    --ink-dim:   #5c564f;
+    --ink-faint: #a49c91;
+    --accent:    #8C1515;
+    --accent-lt: rgba(140,21,21,0.07);
+    --pair:      #a87d3a;
+    --pair-lt:   rgba(168,125,58,0.09);
+    --synthetic: #3f4a2e;
+    --syn-lt:    rgba(63,74,46,0.09);
+    --rule:      #e6dfd0;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --sans:      'Source Sans 3', system-ui, sans-serif;
+    --mono:      'JetBrains Mono', ui-monospace, monospace;
+    --radius:    10px;
+    --shadow-sm: 0 1px 3px rgba(26,24,23,0.06), 0 2px 6px rgba(26,24,23,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.65;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Thin cardinal bar anchors the top of every page */
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 32px 96px;
+    border-top: 4px solid var(--accent);
+  }
+
+  /* ── MASTHEAD ── */
+  .masthead {
+    border-bottom: 2px solid var(--ink);
+    padding: 36px 0 28px;
+    margin-bottom: 12px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 22px;
+  }
+  .title {
+    font-size: clamp(42px, 8vw, 70px);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 0.93;
+  }
+  .title .sub {
+    display: block;
+    font-size: clamp(15px, 2vw, 19px);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--ink-dim);
+    letter-spacing: 0;
+    margin-top: 20px;
+    line-height: 1.55;
+  }
+
+  /* ── META STRIP ── */
+  .meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    padding: 16px 0 0;
+    margin-bottom: 60px;
+  }
+  .meta-strip b { color: var(--ink); font-weight: 700; }
+  .meta-strip .dot { color: var(--accent); }
+
+  /* ── SECTION HEADER ── */
+  .sec {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 68px 0 26px;
+    border-bottom: 1.5px solid var(--rule);
+    padding-bottom: 16px;
+  }
+  .sec-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    letter-spacing: 0;
+  }
+  .sec h2 {
+    font-family: var(--serif);
+    font-size: 23px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card.accent-border { border-left: 3px solid var(--accent); }
+  .card.pair-border   { border-left: 3px solid var(--pair); }
+  .card.syn-border    { border-left: 3px solid var(--synthetic); }
+  .card.tinted        { background: var(--bg-tinted); box-shadow: none; }
+  .card.accent-tinted { background: var(--accent-lt); border-color: rgba(140,21,21,0.18); box-shadow: none; }
+  .card.pair-tinted   { background: var(--pair-lt);   border-color: rgba(168,125,58,0.22); box-shadow: none; }
+  .card.syn-tinted    { background: var(--syn-lt);    border-color: rgba(63,74,46,0.18);  box-shadow: none; }
+
+  .card-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+  .card.accent-border .card-label,
+  .card.accent-tinted .card-label { color: var(--accent); }
+  .card.pair-border .card-label,
+  .card.pair-tinted .card-label   { color: var(--pair); }
+  .card.syn-border .card-label,
+  .card.syn-tinted .card-label    { color: var(--synthetic); }
+
+  .body { font-size: 17px; line-height: 1.65; }
+  .body p + p { margin-top: 11px; }
+  .body strong { font-weight: 600; }
+  .body em { font-style: italic; color: var(--accent); }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight-box {
+    border: 1.5px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 24px 32px;
+    margin: 22px 0;
+    background: var(--accent-lt);
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .highlight-box .big {
+    font-family: var(--mono);
+    font-size: clamp(18px, 2.2vw, 24px);
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .highlight-box .cap {
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+  }
+  .highlight-box .cap b { color: var(--ink); font-weight: 600; }
+
+  /* ── FLOW ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 20px 0;
+  }
+  .flow-step {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 9px 18px;
+    border-radius: 6px;
+    background: var(--bg-tinted);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .flow-step.accent {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .flow-arr {
+    font-family: var(--mono);
+    color: var(--ink-faint);
+    font-size: 14px;
+    padding: 0 2px;
+  }
+
+  /* ── TABLES ── */
+  .tbl-wrap { margin: 16px 0; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    background: var(--bg-tinted);
+    padding: 9px 14px;
+    border-bottom: 1.5px solid var(--ink);
+    text-align: left;
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.num {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  td.num.pair { color: var(--pair); }
+  td.label { font-weight: 600; }
+  td.muted  { color: var(--ink-faint); font-style: italic; font-size: 14px; }
+  tr.hl td  { background: var(--accent-lt); }
+  tr.total td {
+    border-top: 1.5px solid var(--ink);
+    font-weight: 600;
+    border-bottom: none;
+  }
+
+  /* ── 2-COLUMN GRID ── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 18px;
+  }
+
+  /* ── DECISION LOG ── */
+  .decision {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+    transition: border-left-color .18s, box-shadow .18s;
+  }
+  .decision:hover {
+    border-left-color: var(--accent);
+    box-shadow: 0 2px 12px rgba(26,24,23,0.10);
+  }
+  .decision-q {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .decision-a {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin-bottom: 7px;
+    color: var(--ink);
+  }
+  .decision-why {
+    font-size: 15px;
+    color: var(--ink-dim);
+    line-height: 1.6;
+  }
+
+  /* ── PHASE CARDS ── */
+  .phase {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 18px;
+    padding: 22px 26px;
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    margin-bottom: 14px;
+    align-items: start;
+    box-shadow: var(--shadow-sm);
+    transition: border-left-color .18s;
+  }
+  .phase.active { border-left-color: var(--accent); }
+  .phase-num {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--rule);
+    line-height: 1;
+    padding-top: 3px;
+  }
+  .phase.active .phase-num { color: var(--accent); }
+  .phase-body .phase-title {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin-bottom: 9px;
+  }
+  .phase-body .phase-text {
+    font-size: 15.5px;
+    color: var(--ink-dim);
+    line-height: 1.6;
+  }
+  .phase-body .phase-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-bottom: 9px;
+  }
+  .phase.active .phase-tag { background: var(--accent-lt); color: var(--accent); }
+  .phase .phase-tag         { background: var(--bg-tinted); color: var(--ink-faint); }
+
+  hr.div {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 60px 0 0;
+  }
+  .foot {
+    margin-top: 36px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+
+  /* ── TABLE OF CONTENTS ── */
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 0 0 18px;
+    margin-bottom: 52px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .toc a {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    padding: 5px 16px 5px 0;
+    margin-right: 16px;
+    transition: color .15s;
+    white-space: nowrap;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* ── STATUS BADGE ── */
+  .badge-live {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: rgba(63,74,46,0.11);
+    color: var(--synthetic);
+    white-space: nowrap;
+    border: 1px solid rgba(63,74,46,0.2);
+  }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 20px 64px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .flow-arr { display: none; }
+    .highlight-box { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .phase { grid-template-columns: 1fr; }
+    .phase-num { font-size: 14px; }
+    .toc { gap: 4px 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- MASTHEAD -->
+  <div class="masthead">
+    <div class="kicker">SPHERE · Business Model · Internal Reference</div>
+    <h1 class="title">Business Model
+      <span class="sub">How SPHERE makes money, who pays, what they pay for, and where it goes long-term.</span>
+    </h1>
+  </div>
+  <div class="meta-strip">
+    <span><b>Version</b> 1.1</span>
+    <span class="dot">●</span>
+    <span><b>Stage</b> Early — user acquisition priority</span>
+    <span class="dot">●</span>
+    <span><b>Target</b> Individual users in enterprises</span>
+    <span class="dot">●</span>
+    <span><b>Anchor</b> ADRC public deployment</span>
+  </div>
+
+  <nav class="toc">
+    <a href="#s1">1 · What SPHERE is</a>
+    <a href="#s2">2 · What is live today</a>
+    <a href="#s3">3 · Who pays &amp; killer workflow</a>
+    <a href="#s4">4 · How the model works</a>
+    <a href="#s5">5 · Pricing</a>
+    <a href="#s6">6 · Key decisions</a>
+    <a href="#s7">7 · Ecosystem</a>
+    <a href="#s8">8 · Milestones &amp; projections</a>
+  </nav>
+
+  <!-- ── 1. PLATFORM ── -->
+  <div class="sec" id="s1">
+    <span class="sec-num">1</span>
+    <h2>What SPHERE is</h2>
+  </div>
+
+  <div class="card accent-border">
+    <div class="card-label">The platform</div>
+    <div class="flow">
+      <span class="flow-step">Generate</span>
+      <span class="flow-arr">→</span>
+      <span class="flow-step">Evaluate &amp; Certify</span>
+      <span class="flow-arr">→</span>
+      <span class="flow-step">Share</span>
+      <span class="flow-arr">→</span>
+      <span class="flow-step accent">SPHERE AI</span>
+    </div>
+    <div class="body" style="margin-top:14px;">
+      <p><strong>Generate</strong> — produce a certified synthetic twin from any sensitive dataset. Same statistical signal, zero real records.</p>
+      <p><strong>Evaluate &amp; Certify</strong> — mathematical proof of fidelity and privacy. Patent-pending, a decade of Stanford research.</p>
+      <p><strong>Share</strong> — post to SPHERE World catalog. Public or private.</p>
+      <p><strong>SPHERE AI</strong> — embedded AI agent to query, analyze, and train models on the twin instantly. Built-in statistical and clinical knowledge from Stanford School of Medicine. Runs on certified synthetic data — no privacy risk.</p>
+    </div>
+  </div>
+
+  <!-- ADRC proof -->
+  <div class="card pair-border" style="background:var(--pair-lt);">
+    <div class="card-label">The ADRC deployment — proof it works</div>
+    <div class="body">
+      <p>The entire Stanford Alzheimer's Disease Research Center dataset now has a certified SPHERE twin — publicly accessible, no IRB amendment required. Any researcher in the world can explore it with SPHERE AI today. <strong style="color:var(--accent);">This is both a proof of concept and the top of the acquisition funnel. Every researcher interested in ADRC data will likely use SPHERE AI to explore it — and every SPHERE AI interaction requires a SPHERE account and spends tokens.</strong></p>
+    </div>
+  </div>
+
+  <div class="card tinted">
+    <div class="card-label">The ADRC dataset — $30M+ of NIH-funded research, now accessible</div>
+    <div class="body" style="margin-bottom:14px;">
+      <p>The Stanford ADRC dataset represents over $30 million in NIH funding since 2015 — a decade of Alzheimer's research across hundreds of patients, nine data modalities, and 200,000+ features. The 2025–2030 grant alone exceeds $15 million ($3M+ per year), with data collection ongoing.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Access path</th><th>Cost</th><th>Time</th></tr>
+        <tr>
+          <td class="label">Apply to ADRC directly (original data)</td>
+          <td>IRB + DUA + institutional approval</td>
+          <td class="num" style="color:var(--ink-dim);">Months to years</td>
+        </tr>
+        <tr>
+          <td class="label">Collaborate with Stanford investigator</td>
+          <td>Grant co-authorship, long negotiation</td>
+          <td class="num" style="color:var(--ink-dim);">Months</td>
+        </tr>
+        <tr class="hl">
+          <td class="label" style="color:var(--accent);">SPHERE ADRC twin + AI</td>
+          <td style="color:var(--accent);">$10 trial credits</td>
+          <td class="num" style="color:var(--synthetic); font-weight:700;">Instant</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="border-color:var(--synthetic); background:var(--syn-lt); margin-bottom:0;">
+    <span class="big" style="color:var(--synthetic); white-space:nowrap;">Data-centered<br>Agentic AI</span>
+    <span class="cap">
+      <b>The key insight:</b> no general-purpose AI — ChatGPT, Gemini, raw Claude — can answer "what is the APOE4 effect on cognitive decline in this specific cohort?" because they are not linked to the data. SPHERE AI is. <b>The AI derives its value from the data it is connected to, not the other way around.</b> It compounds with every dataset added to the catalog.
+    </span>
+  </div>
+
+
+  <!-- ── 2. CURRENT STATUS ── -->
+  <div class="sec" id="s2">
+    <span class="sec-num">2</span>
+    <h2>What is live today</h2>
+  </div>
+
+  <div class="highlight-box" style="border-color:var(--pair); background:var(--pair-lt);">
+    <span class="big" style="color:var(--pair); white-space:nowrap;">Shipped.<br>Not theory.</span>
+    <span class="cap">
+      The platform, the CLI, and the first anchor dataset with embedded Agentic AI are all live and publicly accessible today. Open <span style="font-family:var(--mono);font-size:12px;color:var(--accent);">web.stanford.edu/~zihuai/adrc-sphere/</span> right now — no account required.
+    </span>
+  </div>
+
+  <div class="card syn-border">
+    <div class="card-label">SPHERE Platform — desktop app</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Capability</th><th>Status</th><th>Detail</th></tr>
+        <tr>
+          <td class="label">Generate synthetic twin</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Any tabular dataset. Local compute. Patent-pending algorithm.</td>
+        </tr>
+        <tr>
+          <td class="label">Evaluate fidelity &amp; privacy</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Mathematical proof of statistical fidelity and privacy guarantee.</td>
+        </tr>
+        <tr>
+          <td class="label">Certify</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Stanford-certified seal. Decade of research, patent pending.</td>
+        </tr>
+        <tr>
+          <td class="label">Share to SPHERE World</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Publish certified twin to public catalog. No IRB amendment required.</td>
+        </tr>
+        <tr>
+          <td class="label">SPHERE AI</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Embedded AI agent. Query, analyze, and train on the twin instantly. Built-in Stanford statistical and clinical methodology.</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.5;">
+      GitHub: <strong>statzihuai/SPHERE</strong> (public) · Single clean commit, documentation and handbook published.
+    </div>
+  </div>
+
+  <div class="card pair-border">
+    <div class="card-label">SPHERE CLI — enterprise integration</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Capability</th><th>Status</th><th>Detail</th></tr>
+        <tr>
+          <td class="label">Generate from CLI</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Script synthetic twin generation from any shell or pipeline.</td>
+        </tr>
+        <tr>
+          <td class="label">Evaluate &amp; Certify from CLI</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Run full evaluation and certification programmatically.</td>
+        </tr>
+        <tr>
+          <td class="label">npm package</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Installable with <span style="font-family:var(--mono);font-size:12px;">npm install -g sphere-cli</span>. No manual setup.</td>
+        </tr>
+        <tr>
+          <td class="label">Python sidecar</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Bundled Python runtime. Zero environment configuration required.</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.5;">
+      GitHub: <strong>statzihuai/sphere-cli</strong> (public) · Published to npm registry. Enterprise teams can integrate today.
+    </div>
+  </div>
+
+  <!-- ADRC live release -->
+  <div class="card" style="border-top:3px solid var(--accent);">
+    <div class="card-label">Stanford ADRC SPHERE — live public release</div>
+    <div class="body" style="margin-bottom:14px;">
+      <p>Launched April 2026. Any researcher in the world can open this URL and start exploring with embedded Agentic AI.</p>
+      <p style="margin-top:10px; font-family:var(--mono); font-size:13px;">
+        <a href="https://web.stanford.edu/~zihuai/adrc-sphere/" style="color:var(--accent); text-decoration:none;" target="_blank">web.stanford.edu/~zihuai/adrc-sphere/</a>
+      </p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Capability</th><th>Status</th><th>Detail</th></tr>
+        <tr>
+          <td class="label">SPHERE AI Agent</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Natural language queries over the entire dataset. Powered by Claude API, running locally in-browser via WebAssembly — no data leaves the user's machine.</td>
+        </tr>
+        <tr>
+          <td class="label">Interactive data explorer</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Filter by diagnosis, age, sex, and data modality. Distribution visualizations by diagnostic group. 644 participants, 9 modalities, 206,000+ features.</td>
+        </tr>
+        <tr>
+          <td class="label">CSV export</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Download custom participant subsets. Data Use Agreement accepted in-browser — no IRB amendment required for methods development and pilot studies.</td>
+        </tr>
+
+        <tr>
+          <td class="label">Data dictionary</td>
+          <td><span class="badge-live">Live</span></td>
+          <td>Full documentation of all 206,000+ features across 9 modalities: cognitive assessments, PET, MRI, WGS, scRNA-seq, CSF proteomics, plasma proteomics.</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.6;">
+      Cohort: 644 participants · healthy controls (290), MCI, Alzheimer's disease, Parkinson's disease, Lewy body disease · San Francisco Bay Area · Data collection ongoing under 2025–2030 NIH grant ($15M+).
+    </div>
+  </div>
+
+  <div class="card tinted">
+    <div class="card-label">Stanford IP &amp; what this means for the plan</div>
+    <div class="body" style="font-size:15.5px; display:grid; grid-template-columns:1fr 1fr; gap:0 32px;">
+      <div>
+        <p><strong>Patent-pending</strong> certification — a decade of Stanford research. SPHERE AI carries Stanford School of Medicine analytical standards: a statistical co-pilot, not a general AI.</p>
+      </div>
+      <div>
+        <p><strong>Technical risk: eliminated.</strong> Platform, CLI, and ADRC twin are all shipped.<br><strong>Market risk: reduced.</strong> Top-of-funnel exists today — researchers can sign up and start right now.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. CUSTOMER ── -->
+  <div class="sec" id="s3">
+    <span class="sec-num">3</span>
+    <h2>Who pays</h2>
+  </div>
+
+  <!-- Beachhead -->
+  <div class="highlight-box" style="border-color:var(--accent); background:var(--accent-lt);">
+    <span class="big" style="color:var(--accent); white-space:nowrap;">Year 1<br>beachhead</span>
+    <span class="cap">
+      <b>Academic neuroscience researchers — starting with the ADRC community.</b> They know the data, they've been waiting to access it for years, and the pain is validated: getting the original data takes months of IRB/DUA paperwork. SPHERE gives them the same analytical depth in minutes. They have discretionary research budgets, can expense $29 without asking anyone, and they publish papers that cite datasets — creating free distribution to the next researcher.
+    </span>
+  </div>
+
+  <!-- Killer workflow -->
+  <div class="card accent-border">
+    <div class="card-label">The killer workflow — hypothesis validation in minutes, not months</div>
+    <div class="body" style="margin-bottom:16px;">
+      <p>A researcher has a question: <em>"Does APOE4 interact with tau burden differently in patients over 70?"</em> That question requires the ADRC data. Here is what the two paths look like.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Step</th><th style="color:var(--ink-dim);">Without SPHERE</th><th style="color:var(--accent);">With SPHERE</th></tr>
+        <tr>
+          <td class="label">Access the data</td>
+          <td>Write IRB application. Wait 8–12 weeks. Often rejected. Redesign. Wait again.</td>
+          <td style="color:var(--accent);">Open SPHERE World. Find ADRC. Sign up. Start immediately.</td>
+        </tr>
+        <tr>
+          <td class="label">Run the analysis</td>
+          <td>Negotiate DUA with Stanford. Set up secure data enclave. Write analysis pipeline.</td>
+          <td style="color:var(--accent);">Ask SPHERE AI in plain language. Get a statistically validated answer with methodology.</td>
+        </tr>
+        <tr>
+          <td class="label">Iterate</td>
+          <td>Each new sub-question requires another data request or collaboration negotiation.</td>
+          <td style="color:var(--accent);">Follow-up questions in the same session. Each one spends tokens.</td>
+        </tr>
+        <tr>
+          <td class="label">Decide next step</td>
+          <td>6–18 months to know if the hypothesis is even worth pursuing.</td>
+          <td style="color:var(--accent);">In one session, decide whether to pursue full IRB access — or move on.</td>
+        </tr>
+        <tr class="total">
+          <td class="label">Total cost</td>
+          <td style="color:var(--ink-dim);">Months of researcher time + institutional overhead</td>
+          <td style="color:var(--accent); font-weight:700;">$10 trial credits → a few dollars per session</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-top:12px;line-height:1.6;">
+      The user pays for the answer, not the software. The alternative is not another tool — it is months of their career. Every iteration generates a new hypothesis and a new session.
+    </div>
+  </div>
+
+  <!-- PLG vs Enterprise -->
+  <div class="card">
+    <div class="card-label">Two motions — consumer PLG and producer enterprise</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th></th><th style="color:var(--synthetic);">Consumer — PLG</th><th style="color:var(--pair);">Producer — Enterprise</th></tr>
+        <tr>
+          <td class="label">What they do</td>
+          <td>Explore existing certified twins (ADRC and future catalog) with SPHERE AI</td>
+          <td>Generate and certify a SPHERE twin from their own sensitive dataset</td>
+        </tr>
+        <tr>
+          <td class="label">Data governance concern</td>
+          <td style="color:var(--synthetic);">None — they access a public synthetic twin; no sensitive data leaves their institution</td>
+          <td style="color:var(--pair);">Real — requires institutional sign-off, DPA, and trust in the certification methodology</td>
+        </tr>
+        <tr>
+          <td class="label">Sales motion</td>
+          <td style="color:var(--synthetic);">Self-serve. Sign up with a credit card today.</td>
+          <td style="color:var(--pair);">Sales-assisted. Design partner conversation, custom bundle, DPA.</td>
+        </tr>
+        <tr>
+          <td class="label">Decision-maker</td>
+          <td>Individual researcher or data scientist</td>
+          <td>Data team lead, legal, IT, institutional review</td>
+        </tr>
+        <tr>
+          <td class="label">Year 1 priority</td>
+          <td style="color:var(--synthetic); font-weight:700;">Primary focus — build the consumer base via ADRC</td>
+          <td style="color:var(--pair); font-weight:700;">1–2 design partners to prove the producer side</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.6;">
+      The PLG consumer base creates the demand signal that makes the enterprise producer conversation easier. A hospital considering publishing their own SPHERE twin wants to know researchers are already using the platform.
+    </div>
+  </div>
+
+  <!-- Repeat usage -->
+  <div class="card tinted">
+    <div class="card-label">Why users come back — repeat usage drivers</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Driver</th><th>Mechanism</th><th>Frequency</th></tr>
+        <tr>
+          <td class="label">Ongoing data collection</td>
+          <td>ADRC data collection runs through 2030. New time points, modalities, and participants are added continuously. Existing users return to re-run analyses on updated data.</td>
+          <td class="num">Quarterly+</td>
+        </tr>
+        <tr>
+          <td class="label">SPHERE AI as analytical habit</td>
+          <td>Research is iterative. One answer generates three new hypotheses. Researchers who use SPHERE AI once return every time they have a question — it becomes their statistical co-pilot, not a one-time tool.</td>
+          <td class="num">Weekly</td>
+        </tr>
+        <tr>
+          <td class="label">Publication flywheel</td>
+          <td>A paper citing SPHERE as the data access method reaches its readers. Readers want to replicate or build on the findings. They come to SPHERE, become users, eventually bring their own data.</td>
+          <td class="num">Per paper</td>
+        </tr>
+        <tr>
+          <td class="label">Catalog growth</td>
+          <td>Each new dataset added to SPHERE World is a new reason to return. A researcher who came for ADRC stays for the next neurodegenerative cohort, then explores a cardiovascular dataset.</td>
+          <td class="num">Per new dataset</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card tinted">
+      <div class="card-label">What they're replacing</div>
+      <div class="body" style="font-size:15px;">
+        <p>IRB amendment: <strong>4–12 weeks</strong></p>
+        <p style="margin-top:8px;">Data governance approval: <strong>months</strong></p>
+        <p style="margin-top:8px;">Manual anonymization: <strong>$5k–20k</strong></p>
+        <p style="margin-top:8px;">Legal data sharing review: <strong>$10k–50k</strong></p>
+      </div>
+    </div>
+    <div class="card accent-tinted">
+      <div class="card-label">What SPHERE costs them</div>
+      <div class="body" style="font-size:15px;">
+        <p>Full workflow on 5M cells: <strong>$25</strong></p>
+        <p style="margin-top:8px;">Monthly subscription: <strong>$29</strong></p>
+        <p style="margin-top:8px;">Comparable to Cursor Pro</p>
+        <p style="margin-top:8px;">No manager conversation needed</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 4. MODEL ── -->
+  <div class="sec" id="s4">
+    <span class="sec-num">4</span>
+    <h2>How the model works</h2>
+  </div>
+
+  <div class="card syn-border">
+    <div class="card-label">Account-based, not license-based</div>
+    <div class="body">
+      <p>Users create a <strong>SPHERE account</strong> — one login, one credit balance, one billing relationship. No license negotiation, no procurement decision, no IT approval for individuals. All usage draws from the same credit balance; enterprise customers buy a bundle and sign a DPA.</p>
+      <p>SPHERE holds the Claude API relationship and charges users at retail rates — no BYOK friction. The AI layer earns ~15% base margin from an Anthropic volume discount, with effective margin significantly higher due to caching (see below).</p>
+    </div>
+  </div>
+
+  <div class="card tinted">
+    <div class="card-label">Margin structure</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Revenue stream</th><th>Margin</th><th>Why</th></tr>
+        <tr>
+          <td class="label">Generation</td>
+          <td class="num">High</td>
+          <td>Algorithm runs on user's machine. Near-zero compute cost to SPHERE.</td>
+        </tr>
+        <tr>
+          <td class="label">Evaluate &amp; Certify</td>
+          <td class="num">High</td>
+          <td>Same — local compute, pure value capture.</td>
+        </tr>
+        <tr>
+          <td class="label">Monthly subscription</td>
+          <td class="num">High</td>
+          <td>Mostly cell allowance; actual cost is low. Predictable recurring revenue.</td>
+        </tr>
+        <tr class="hl">
+          <td class="label">AI agent</td>
+          <td class="num">~40%+</td>
+          <td>User billed at Claude retail for all tokens. Cached context costs SPHERE 10× less. Volume discount improves further with scale.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card accent-border">
+    <div class="card-label">AI margin — how caching works</div>
+    <div class="body" style="margin-bottom:14px; font-size:15px;">
+      <p>Anthropic returns a full token breakdown per API call: <strong>fresh input tokens</strong> ($3.00/1M) and <strong>cache-read tokens</strong> ($0.30/1M). SPHERE bills the user at retail for the total — fresh + cached — as if no caching occurred. The 10× cost difference on cached tokens is SPHERE's margin, a return on the caching infrastructure investment.</p>
+      <p>Two components are cached per session: the <strong>SAP knowledge base (~3,000 tokens)</strong> and the <strong>dataset context</strong> (varies). Both re-cache at session start if the 5-min TTL has expired. For ADRC, the dataset context is identical across all users — opening the possibility of a globally shared cache that further improves margin.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Typical Sonnet query</th><th>Tokens</th><th>SPHERE pays</th><th>User pays</th></tr>
+        <tr>
+          <td>Cached context (dataset + SAP)</td>
+          <td class="num">~4,500</td>
+          <td class="num" style="color:var(--synthetic);">$0.00135</td>
+          <td class="num">$0.01350</td>
+        </tr>
+        <tr>
+          <td>Fresh input (user's question)</td>
+          <td class="num">~500</td>
+          <td class="num" style="color:var(--synthetic);">$0.00150</td>
+          <td class="num">$0.00150</td>
+        </tr>
+        <tr>
+          <td>Output</td>
+          <td class="num">~1,000</td>
+          <td class="num" style="color:var(--synthetic);">$0.01500</td>
+          <td class="num">$0.01500</td>
+        </tr>
+        <tr class="total">
+          <td class="label">Total</td><td></td>
+          <td class="num" style="color:var(--synthetic);">$0.01785</td>
+          <td class="num">$0.03000</td>
+        </tr>
+        <tr class="hl">
+          <td class="label">Effective margin</td><td></td><td></td>
+          <td class="num">~40%</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-top:12px;line-height:1.6;">
+      Anthropic volume discount (currently ~15%) and caching are independent levers — combined effective margin is ~40%+ today and improves with scale.
+    </div>
+  </div>
+
+
+  <!-- ── 5. PRICING ── -->
+  <div class="sec" id="s5">
+    <span class="sec-num">5</span>
+    <h2>Pricing</h2>
+  </div>
+
+  <div class="card accent-border">
+    <div class="card-label">Pay-as-you-go — SPHERE actions</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-bottom:12px;line-height:1.6;">
+      Sign up free · $10 trial credits, no card required · SPHERE World access included · card required after trial
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Action</th><th>Price</th><th>Unit</th></tr>
+        <tr>
+          <td class="label">Generate</td>
+          <td class="num">$4</td>
+          <td>per 1M cells (rows × columns)</td>
+        </tr>
+        <tr>
+          <td class="label">Evaluate &amp; Certify</td>
+          <td class="num">$1</td>
+          <td>per 1M cells</td>
+        </tr>
+        <tr class="hl">
+          <td class="label">Full workflow</td>
+          <td class="num">$5</td>
+          <td>per 1M cells — generate + eval &amp; certify</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);margin-top:12px;line-height:1.5;">
+      Cells = rows × columns, all columns included pre-QC. Cost preview shown before generation starts.
+    </div>
+    <div class="card-label" style="margin-top:22px;">Typical full workflow cost</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Dataset</th><th>Cells</th><th>Generate</th><th>Eval &amp; Certify</th><th>Total</th></tr>
+        <tr>
+          <td>Clinical trial (5k × 200)</td>
+          <td class="num">1M</td><td class="num">$4</td><td class="num">$1</td><td class="num">$5</td>
+        </tr>
+        <tr>
+          <td>EHR extract (20k × 150)</td>
+          <td class="num">3M</td><td class="num">$12</td><td class="num">$3</td><td class="num">$15</td>
+        </tr>
+        <tr class="hl">
+          <td>Large study (10k × 500)</td>
+          <td class="num">5M</td><td class="num">$20</td><td class="num">$5</td><td class="num">$25</td>
+        </tr>
+        <tr>
+          <td>ADRC-scale (644 × 200k)</td>
+          <td class="num">128M</td><td class="num">$512</td><td class="num">$128</td><td class="num">$640</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card syn-border">
+    <div class="card-label">Pay-as-you-go — SPHERE AI &amp; transparency</div>
+    <div class="body" style="margin-bottom:14px;">
+      <p>SPHERE AI is charged at <strong>Claude API retail rates — no markup</strong>. The table below is published on the pricing page; the "no equivalent" rows make clear that SPHERE charges only for what Claude cannot do.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Action</th><th>SPHERE charge</th><th>Claude API</th><th>$10 buys</th></tr>
+        <tr><td class="label">Generate 1M cells</td><td class="num">$4</td><td class="muted">No equivalent</td><td class="muted">—</td></tr>
+        <tr><td class="label">Evaluate &amp; Certify 1M cells</td><td class="num">$1</td><td class="muted">No equivalent</td><td class="muted">—</td></tr>
+        <tr><td class="label">AI · Haiku (per 1M in/out)</td><td class="num">$0.80 / $4</td><td class="num">Same</td><td>~1,600 queries</td></tr>
+        <tr class="hl"><td class="label">AI · Sonnet (per 1M in/out)</td><td class="num">$3 / $15</td><td class="num">Same</td><td>~500 queries</td></tr>
+        <tr><td class="label">AI · Opus (per 1M in/out)</td><td class="num">$15 / $75</td><td class="num">Same</td><td>~110 queries</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card pair-tinted">
+    <div class="card-label">$29 / mo — monthly plan</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Included</th><th>Amount</th><th>Pay-as-you-go value</th></tr>
+        <tr><td class="label">Generation allowance</td><td>10M cells</td><td class="num">$40</td></tr>
+        <tr><td class="label">Evaluate &amp; Certify allowance</td><td>10M cells</td><td class="num">$10</td></tr>
+        <tr><td class="label">AI credits (at Claude retail)</td><td>$20</td><td class="num">$20</td></tr>
+        <tr><td>Additional credit packs</td><td>10% discount</td><td class="muted">—</td></tr>
+        <tr class="total"><td class="label">Total included value</td><td></td><td class="num">$70</td></tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;">
+      Breakeven vs. pay-as-you-go at ~2 full workflows on a medium dataset per month. Cell allowance resets monthly; unused credits do not roll over.
+    </div>
+  </div>
+
+
+  <!-- ── 6. DECISIONS ── -->
+  <div class="sec" id="s6">
+    <span class="sec-num">6</span>
+    <h2>Key decisions and why</h2>
+  </div>
+
+  <div class="decision">
+    <div class="decision-q">Decision 1</div>
+    <div class="decision-a">Account model, not license keys</div>
+    <div class="decision-why">License negotiation is a barrier for individuals and a procurement conversation for enterprises. Account + credit model means anyone can sign up, add a card, and start in minutes. Enterprise just means a bigger credit bundle and a DPA — no custom deal until serious scale.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-q">Decision 2</div>
+    <div class="decision-a">Charge by cells (rows × columns), not by row or by dataset</div>
+    <div class="decision-why">Rows alone misses dimensionality — a 1,000-row omics dataset with 50,000 columns is far more work than 1,000 rows × 10 columns. Cells matches actual compute and is intuitive: users know their data dimensions. All columns included pre-QC for simplicity.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-q">Decision 3</div>
+    <div class="decision-a">Generate ($4/1M) costs more than Evaluate &amp; Certify ($1/1M)</div>
+    <div class="decision-why">Generation is the core IP and hard computational work. Evaluate &amp; Certify runs on already-generated data. Pricing eval &amp; certify cheaper encourages users to always run the full workflow — if it cost the same as generation, users might skip it.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-q">Decision 4</div>
+    <div class="decision-a">AI at Claude retail rates — no markup, full transparency</div>
+    <div class="decision-why">Researchers and developers know Claude's pricing. Matching it exactly builds immediate trust. SPHERE's margin comes from generation and subscriptions — the AI layer is a retention feature, not a profit center. Publishing a side-by-side table removes any suspicion of hidden margin.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-q">Decision 5</div>
+    <div class="decision-a">No permanent free tier — $10 trial credits instead</div>
+    <div class="decision-why">A free tier attracts non-buyers and creates support burden. $10 trial credits cover meaningful ADRC exploration (300+ AI queries, small dataset generation) and convert serious evaluators. After trial, card required.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-q">Decision 6</div>
+    <div class="decision-a">$29/month — priced for individual expense, not procurement</div>
+    <div class="decision-why">The target user expenses tools like Cursor ($20/mo) and GitHub Copilot ($19/mo) without asking. $29 sits in that range. Goal at this stage is account acquisition and ecosystem building — not margin maximization. Price rises as catalog value grows.</div>
+  </div>
+
+  <div class="decision">
+    <div class="decision-q">Decision 7</div>
+    <div class="decision-a">Enforcement via features, not honor system</div>
+    <div class="decision-why">Can't technically prevent academic users from using the product commercially. But commercial users need things academics don't: private sharing, on-premise deployment, SLA, audit logs, DPA. These gate themselves. A hospital's legal team won't sign off on a free account — the reputational risk far exceeds the license cost.</div>
+  </div>
+
+
+  <!-- ── 7. ECOSYSTEM ── -->
+  <div class="sec" id="s7">
+    <span class="sec-num">7</span>
+    <h2>The end-game ecosystem</h2>
+  </div>
+
+  <div class="highlight-box" style="border-color:var(--accent); background:var(--accent-lt); margin-bottom:28px;">
+    <span class="big" style="color:var(--accent); white-space:nowrap;">Every<br>dataset.</span>
+    <span class="cap">
+      <b>The vision: every dataset in the world has a privacy-safe SPHERE twin.</b> Any researcher, analyst, or institution sitting on sensitive data — clinical, financial, governmental, industrial — can generate a certified twin, share it with the world, and let anyone explore it with AI. The data stays where it lives. The knowledge it contains becomes universally accessible.
+    </span>
+  </div>
+
+  <div class="highlight-box" style="border-color:var(--synthetic); background:var(--syn-lt); margin-bottom:28px;">
+    <span class="big" style="color:var(--synthetic); white-space:nowrap;">AI comes<br>to the data</span>
+    <span class="cap">
+      <b>The architecture that makes this possible:</b> SPHERE runs where the data already lives. No cloud to provision, no pipeline to build. SPHERE AI is embedded directly alongside the data — so anyone can query, explore, and analyze it <em>before</em> requesting access or downloading anything.
+    </span>
+  </div>
+
+  <!-- Three-market end-game -->
+  <div class="card" style="margin-bottom:28px;">
+    <div class="card-label">One platform. Three market dimensions.</div>
+    <div class="body" style="margin-bottom:16px;">
+      <p>Near-term SPHERE looks like a research tool. The end-game is a single platform that spans three distinct billion-dollar markets — each addressed by the same local-deploy architecture, as one integrated experience.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>What SPHERE does</th>
+          <th>Capability</th>
+          <th>Comparable market</th>
+          <th>SPHERE's deployment advantage</th>
+        </tr>
+        <tr>
+          <td class="label" style="color:var(--accent); font-weight:700;">Generate · Evaluate · Certify · Share</td>
+          <td>Certified synthetic twins from any sensitive dataset. Mathematical fidelity and privacy proof. Publish to the catalog.</td>
+          <td style="font-family:var(--mono);font-size:12px;">Gretel · MDclone · Mostly AI</td>
+          <td>Runs locally — no cloud account, no ingestion pipeline, no compute bill per run. Install and generate.</td>
+        </tr>
+        <tr>
+          <td class="label" style="color:var(--synthetic); font-weight:700;">Data-centered AI analysis</td>
+          <td>AI agent embedded alongside the data. Statistical co-pilot with Stanford methodology. Answers research questions before any download.</td>
+          <td style="font-family:var(--mono);font-size:12px;">Julius AI · Cursor</td>
+          <td>Linked to the data directly — not a general-purpose AI that users upload files to. Works on datasets that never leave their source.</td>
+        </tr>
+        <tr>
+          <td class="label" style="color:var(--pair); font-weight:700;">Sensitive data catalog &amp; marketplace</td>
+          <td>Federated catalog of certified datasets. Consumers explore with embedded AI in-place — without data leaving its source.</td>
+          <td style="font-family:var(--mono);font-size:12px;">Snowflake · Databricks</td>
+          <td>No ingestion pipeline required per dataset. Each institution connects once; AI explores in-place on their hardware.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="phase active">
+    <div class="phase-num">01</div>
+    <div class="phase-body">
+      <div class="phase-tag">Now</div>
+      <div class="phase-title">Build accounts around ADRC</div>
+      <div class="phase-text">ADRC is the demo and top of funnel. Researchers find the public twin, register for a SPHERE account, use $10 trial credits to explore with SPHERE AI. Some bring their own data → generate a twin → become paying users.<br><br><em style="color:var(--accent);">"$29/month to generate certified synthetic twins and explore ADRC with AI — no IRB, no waitlist."</em></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">02</div>
+    <div class="phase-body">
+      <div class="phase-tag">Catalog grows</div>
+      <div class="phase-title">Explore before you download</div>
+      <div class="phase-text">As more institutions post SPHERE twins — more disease cohorts, more modalities, more domains — SPHERE AI becomes a universal interface to sensitive data worldwide. A pharma researcher queries five rare-disease cohorts, refines their hypothesis, and <em>then</em> submits a DUA for the one that matters.<br><br>Data consumers (AI labs, pharma R&D, startups) pay for catalog access and in-place AI exploration — regardless of whether they ever download.<br><br><em style="color:var(--ink-dim);">"$29/month to explore the world's largest catalog of certified sensitive datasets, each with an AI agent built in."</em></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">03</div>
+    <div class="phase-body">
+      <div class="phase-tag">Data cooperative</div>
+      <div class="phase-title">Revenue share with producers</div>
+      <div class="phase-text">Once consumer-side access fees are significant, share them back to data producers. An institution whose dataset is widely explored earns a cut — incentivizing more high-quality contributions.</div>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="border-color:var(--pair); background:var(--pair-lt); margin-top:24px;">
+    <span class="big" style="color:var(--pair);">2-sided</span>
+    <span class="cap">
+      <b>The long-term model is a federated data marketplace.</b> Data producers pay SPHERE to generate, certify, and publish. Data consumers pay SPHERE to access and explore in-place via SPHERE AI.
+    </span>
+  </div>
+
+
+
+  <!-- ── 8. NEAR-TERM MILESTONES + FINANCIAL PROJECTIONS ── -->
+  <div class="sec" id="s8">
+    <span class="sec-num">8</span>
+    <h2>Financial projections</h2>
+  </div>
+
+  <!-- 6-12 month milestones -->
+  <div class="card pair-border" style="background:var(--pair-lt);">
+    <div class="card-label">What needs to be proven — 6 to 12 month milestones</div>
+    <div class="body" style="margin-bottom:16px;">
+      <p>Five proof points that determine whether the Y2–Y3 projections hold.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>#</th><th>Milestone</th><th>What it proves</th><th>Target</th></tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);color:var(--pair);">01</td>
+          <td><strong>First 100 paying users</strong> from organic ADRC discovery</td>
+          <td>The PLG funnel converts — researchers find ADRC, sign up, spend tokens</td>
+          <td class="num">Month 6</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);color:var(--pair);">02</td>
+          <td><strong>Repeat usage</strong> — monthly active users grow faster than new sign-ups</td>
+          <td>SPHERE AI creates habit, not one-time use; retention is real</td>
+          <td class="num">Month 6–9</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);color:var(--pair);">03</td>
+          <td><strong>First paper citing SPHERE</strong> as the data access method</td>
+          <td>Academic publication flywheel is real; each paper is a distribution event</td>
+          <td class="num">Month 9–12</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);color:var(--pair);">04</td>
+          <td><strong>One pharma or biotech design partner</strong> running SPHERE on their own data</td>
+          <td>Producer side is viable; enterprise motion can begin; Finance domain path opens</td>
+          <td class="num">Month 9–12</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);color:var(--pair);">05</td>
+          <td><strong>One additional institution</strong> publishes a SPHERE twin in the catalog</td>
+          <td>Supply-side growth is replicable beyond ADRC; catalog network effect can start</td>
+          <td class="num">Month 12</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-top:12px;line-height:1.6;">
+      Milestones 01 and 02 are the most important. If repeat usage is low, every downstream projection is in question. If it is strong, the Y2 base case ($1.5M ARR, 3,000 accounts) becomes conservative.
+    </div>
+  </div>
+
+  <!-- Terminology -->
+  <div class="card">
+    <div class="card-label">Key terminology — plain English</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Term</th><th>Definition</th><th>SPHERE example</th></tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">ARR</td>
+          <td><strong>Annual Recurring Revenue.</strong> Top-line revenue the business would earn in a year at current subscriber levels — before any costs.</td>
+          <td class="num">500 subscribers × $29 × 12 = $174K</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">MRR</td>
+          <td><strong>Monthly Recurring Revenue.</strong> ARR ÷ 12.</td>
+          <td class="num">$174K ARR → $14.5K MRR</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">Run rate</td>
+          <td><strong>Current MRR × 12.</strong> Projects today's state forward; actual year revenue is lower due to ramp.</td>
+          <td class="num">End-Y1 MRR $17.5K → $210K run rate</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">COGS</td>
+          <td><strong>Cost of Goods Sold.</strong> Direct per-unit delivery cost — not salaries or overhead.</td>
+          <td class="num">Generation: $0 · AI: ~$0.85/$1 billed</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">Gross Profit</td>
+          <td><strong>Revenue − COGS.</strong> What remains after serving customers, before team and company costs.</td>
+          <td class="num">$1M × 92% = $920K gross profit</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">Gross Margin</td>
+          <td><strong>Gross Profit ÷ Revenue.</strong> Revenue quality signal — how much of each dollar sticks before overhead.</td>
+          <td class="num" style="color:var(--synthetic);">~92% blended</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">OpEx</td>
+          <td><strong>Operating Expenses.</strong> Fixed costs — salaries, tools, servers — that don't scale per customer.</td>
+          <td class="num">Y2 est. ~$800K (5-person team)</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">EBITDA</td>
+          <td><strong>Gross Profit − OpEx.</strong> Operating profit. Positive = self-sustaining; negative = burning cash.</td>
+          <td class="num" style="color:var(--synthetic);">+$580K by Year 2</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">ARPU</td>
+          <td><strong>Average Revenue Per User.</strong> ARR ÷ paying accounts.</td>
+          <td class="num">Y3: $6M ÷ 10K = $600/yr</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">LTV</td>
+          <td><strong>Lifetime Value.</strong> ARPU × average years retained.</td>
+          <td class="num">$600 × 4 years = $2,400</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">CAC</td>
+          <td><strong>Customer Acquisition Cost.</strong> Marketing + sales spend ÷ new customers acquired.</td>
+          <td class="num">PLG est. ~$10–$20/user</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">TAM</td>
+          <td><strong>Total Addressable Market.</strong> Revenue ceiling if SPHERE captured 100% of target market.</td>
+          <td class="num">~1M users × $675/yr = $675M</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">ARR multiple</td>
+          <td><strong>Valuation ÷ ARR.</strong> How investors price growth and margin quality into a revenue figure.</td>
+          <td class="num">Gretel exit: ~33× est. · SaaS typical: 10–15×</td>
+        </tr>
+        <tr>
+          <td class="label" style="font-family:var(--mono);font-size:12px;white-space:nowrap;">Churn</td>
+          <td><strong>% of subscribers who cancel per period.</strong> Low churn = high retention = high LTV.</td>
+          <td class="num">Target: &lt;1%/month</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Revenue archetypes -->
+  <div class="card accent-border">
+    <div class="card-label">Revenue building blocks — user archetypes from actual pricing</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Archetype</th><th>Plan</th><th>Generation</th><th>AI credits</th><th>Monthly spend</th><th>Annual ARPU</th></tr>
+        <tr>
+          <td class="label">A · ADRC explorer</td>
+          <td>$29</td><td class="muted">none</td><td>within plan</td>
+          <td class="num">$29</td><td class="num">$348</td>
+        </tr>
+        <tr>
+          <td class="label">B · Researcher, own data</td>
+          <td>$29</td><td>5M cells (within plan)</td><td>$10 overage</td>
+          <td class="num">$39</td><td class="num">$468</td>
+        </tr>
+        <tr class="hl">
+          <td class="label">C · Pharma data scientist</td>
+          <td>$29</td><td>20M cells (+$40 overage)</td><td>$30 overage</td>
+          <td class="num">$99</td><td class="num">$1,188</td>
+        </tr>
+        <tr>
+          <td class="label">D · PAYG AI-only</td>
+          <td class="muted">none</td><td class="muted">none</td><td>$15/mo</td>
+          <td class="num">$15</td><td class="num">$180</td>
+        </tr>
+        <tr>
+          <td class="label">E · PAYG generator</td>
+          <td class="muted">none</td><td>5M cells × $5, quarterly</td><td>$10/mo avg</td>
+          <td class="num">$33 avg</td><td class="num">$396</td>
+        </tr>
+        <tr>
+          <td class="label">F · Enterprise team (5 seats)</td>
+          <td>$29 × 5</td><td>90M cells (50M included, 40M overage × $4 = $160)</td><td>$100/mo</td>
+          <td class="num">$405/mo</td><td class="num">~$4.9K/team</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.5;">
+      Monthly plan includes: 10M cells generation + 10M cells eval &amp; certify + $20 AI credits. Generation overage: $4/1M cells. Eval &amp; certify overage: $1/1M cells. AI overage at Claude retail rates.
+    </div>
+  </div>
+
+  <!-- Three-scenario ARR -->
+  <div class="card">
+    <div class="card-label">ARR projections — three scenarios</div>
+    <div class="body" style="margin-bottom:16px;">
+      <p><strong>Conservative</strong> assumes traditional sales-led ramp — slow enterprise procurement, no viral effects. <strong>Base (PLG)</strong> assumes product-led growth: self-serve, organic academic discovery, word of mouth. <strong>Bull</strong> adds catalog network effects compounding across domains.</p>
+      <p style="margin-top:10px;font-size:15.5px;color:var(--ink-dim);">Reference: Julius grew $1M → $15M ARR in 12 months with no unique data hook and many direct substitutes. SPHERE has a captive audience, ADRC as a specific known dataset, academic publication as free distribution, and zero deployment friction. Matching half of Julius's growth velocity puts SPHERE at $15M ARR by Year 3–4.</p>
+      <p style="margin-top:8px;font-size:14px;color:var(--ink-faint);">Note: Y3 base ($6M, ~10K accounts) requires Finance domain launch to contribute meaningfully alongside continued Health growth. This is the highest-dependency year in the base case — conservative scenario ($1.3M) assumes Finance launch slips or converts slowly.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>Year</th>
+          <th>Conservative</th>
+          <th style="color:var(--accent);">Base (PLG)</th>
+          <th>Bull</th>
+          <th>Paying accounts (base)</th>
+          <th>Primary driver</th>
+        </tr>
+        <tr>
+          <td class="label">Y1</td>
+          <td class="num">$70K</td>
+          <td class="num" style="color:var(--accent);">$210K</td>
+          <td class="num">$420K</td>
+          <td class="num">~500</td>
+          <td>ADRC launch, organic academic discovery</td>
+        </tr>
+        <tr>
+          <td class="label">Y2</td>
+          <td class="num">$360K</td>
+          <td class="num" style="color:var(--accent);">$1.5M</td>
+          <td class="num">$3.5M</td>
+          <td class="num">~3,000</td>
+          <td>Papers citing SPHERE, pharma word of mouth</td>
+        </tr>
+        <tr class="hl">
+          <td class="label">Y3</td>
+          <td class="num">$1.3M</td>
+          <td class="num" style="color:var(--accent);">$6M</td>
+          <td class="num">$14M</td>
+          <td class="num">~10,000</td>
+          <td>Finance domain opens, catalog 5+ datasets</td>
+        </tr>
+        <tr>
+          <td class="label">Y4</td>
+          <td class="num">$4.3M</td>
+          <td class="num" style="color:var(--accent);">$21M</td>
+          <td class="num">$40M</td>
+          <td class="num">~30,000</td>
+          <td>Multi-domain, enterprise tier active</td>
+        </tr>
+        <tr>
+          <td class="label">Y5</td>
+          <td class="num">$9.4M</td>
+          <td class="num" style="color:var(--accent);">$55M</td>
+          <td class="num">$100M+</td>
+          <td class="num">~70,000</td>
+          <td>4 domains, catalog marketplace, 70K+ accounts</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Domain expansion ARR -->
+  <div class="card pair-border">
+    <div class="card-label">Domain expansion — ARR by domain (base case)</div>
+    <div class="body" style="margin-bottom:16px;">
+      <p>Adding a domain requires one anchor dataset and one SPHERE AI knowledge layer — no platform rebuild. Each domain replicates the same playbook.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Year</th><th>Health</th><th>Finance</th><th>Gov / Research</th><th>General Enterprise</th><th style="color:var(--pair);">Total ARR</th></tr>
+        <tr>
+          <td class="label">Y1</td>
+          <td class="num">$210K</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td>
+          <td class="num" style="color:var(--pair);">$210K</td>
+        </tr>
+        <tr>
+          <td class="label">Y2</td>
+          <td class="num">$1.3M</td><td class="num">$200K</td><td class="muted">—</td><td class="muted">—</td>
+          <td class="num" style="color:var(--pair);">$1.5M</td>
+        </tr>
+        <tr class="hl">
+          <td class="label">Y3</td>
+          <td class="num">$4.5M</td><td class="num">$1.2M</td><td class="num">$300K</td><td class="muted">—</td>
+          <td class="num" style="color:var(--pair);">$6M</td>
+        </tr>
+        <tr>
+          <td class="label">Y4</td>
+          <td class="num">$11M</td><td class="num">$6M</td><td class="num">$2M</td><td class="num">$2M</td>
+          <td class="num" style="color:var(--pair);">$21M</td>
+        </tr>
+        <tr>
+          <td class="label">Y5</td>
+          <td class="num">$22M</td><td class="num">$18M</td><td class="num">$7M</td><td class="num">$8M</td>
+          <td class="num" style="color:var(--pair);">$55M</td>
+        </tr>
+      </table>
+    </div>
+    <div class="card-label" style="margin-top:22px;">Domain TAM and entry playbook</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Domain</th><th>Anchor dataset</th><th>SPHERE AI layer</th><th>Reachable users</th><th>ARR at 1% penetration</th></tr>
+        <tr>
+          <td class="label">Health</td>
+          <td>Stanford ADRC <span style="font-family:var(--mono);font-size:11px;color:var(--accent);">DEPLOYED</span></td>
+          <td>Clinical stats, SAP methodology</td>
+          <td class="num">300K</td><td class="num">$240M</td>
+        </tr>
+        <tr>
+          <td class="label">Finance</td>
+          <td>Partner bank / fintech synthetic release</td>
+          <td>Credit risk, AML, regulatory reporting</td>
+          <td class="num">200K</td><td class="num">$200M</td>
+        </tr>
+        <tr>
+          <td class="label">Gov / Research</td>
+          <td>Census / NIH survey synthetic release</td>
+          <td>Survey methodology, causal inference</td>
+          <td class="num">50K</td><td class="num">$30M</td>
+        </tr>
+        <tr>
+          <td class="label">General enterprise</td>
+          <td>Self-serve — no anchor needed</td>
+          <td>General statistics (already built)</td>
+          <td class="num">450K</td><td class="num">$205M</td>
+        </tr>
+        <tr class="total">
+          <td class="label">Total TAM</td><td></td><td></td>
+          <td class="num">~1M</td>
+          <td class="num">~$675M</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Cost structure and gross margin -->
+  <div class="card syn-border">
+    <div class="card-label">Cost structure &amp; gross margin</div>
+    <div class="body" style="margin-bottom:16px;">
+      <p>ARR is always top-line — before any costs. What makes SPHERE's ARR exceptional is that <strong>the local-compute architecture eliminates the largest cost every competitor carries</strong>. Synthetic data generation, evaluation, and certification all run on the user's machine. SPHERE pays zero for compute on its highest-volume operations.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Operation</th><th>Where it runs</th><th>SPHERE COGS</th><th>Gross margin</th></tr>
+        <tr>
+          <td class="label">Generate synthetic twin</td>
+          <td>User's local machine</td>
+          <td class="num" style="color:var(--synthetic);">$0</td>
+          <td class="num" style="color:var(--synthetic);">~99%</td>
+        </tr>
+        <tr>
+          <td class="label">Evaluate &amp; Certify</td>
+          <td>User's local machine</td>
+          <td class="num" style="color:var(--synthetic);">$0</td>
+          <td class="num" style="color:var(--synthetic);">~99%</td>
+        </tr>
+        <tr>
+          <td class="label">SPHERE World catalog hosting</td>
+          <td>Vercel + Supabase</td>
+          <td class="num" style="color:var(--synthetic);">~$0.01/user/mo</td>
+          <td class="num" style="color:var(--synthetic);">~99%</td>
+        </tr>
+        <tr>
+          <td class="label">SPHERE AI (Claude API)</td>
+          <td>Anthropic (85% retail + caching margin)</td>
+          <td class="num">$0.30–$0.85 per $1 billed</td>
+          <td class="num">~60–90%</td>
+        </tr>
+      </table>
+    </div>
+    <div class="card-label" style="margin-top:22px;">Blended gross margin across all revenue streams</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Revenue stream</th><th>Share of revenue</th><th>Gross margin</th><th>Contribution to blended</th></tr>
+        <tr>
+          <td class="label">Subscription ($29/mo)</td><td>40%</td>
+          <td class="num" style="color:var(--synthetic);">99%</td><td class="num">39.6%</td>
+        </tr>
+        <tr>
+          <td class="label">Generation + Eval &amp; Certify</td><td>35%</td>
+          <td class="num" style="color:var(--synthetic);">99%</td><td class="num">34.7%</td>
+        </tr>
+        <tr>
+          <td class="label">AI credits</td><td>25%</td>
+          <td class="num">~70%</td><td class="num">17.5%</td>
+        </tr>
+        <tr class="total">
+          <td class="label">Blended</td><td>100%</td>
+          <td class="num" style="color:var(--synthetic);">~92%</td>
+          <td class="num" style="color:var(--synthetic);">91.8%</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.6;">
+      92% is the early-stage ceiling assuming a high cache-hit ratio on AI queries. At scale, as fresh-token share rises, blended margin may compress toward ~80–85%. SPHERE remains structurally 20–35 points above competitors (Julius ~65%, Gretel ~55%, MDclone ~60%) regardless — detailed comparison in the benchmarks section below.
+    </div>
+  </div>
+
+  <!-- Profitability path -->
+  <div class="card">
+    <div class="card-label">Profitability path (base case)</div>
+    <div class="body" style="margin-bottom:16px;">
+      <p>Gretel raised $67M and never reached profitability before acquisition. MDclone raised $104M and is still growing into its cost base. SPHERE reaches operating profitability in <strong>Year 2</strong> on a lean team with no dedicated sales.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th></th><th>Year 1</th><th>Year 2</th><th>Year 3</th><th>Year 4</th></tr>
+        <tr>
+          <td class="label">ARR (base)</td>
+          <td class="num">$210K</td><td class="num">$1.5M</td><td class="num">$6M</td><td class="num">$21M</td>
+        </tr>
+        <tr>
+          <td class="label">Gross profit (92%)</td>
+          <td class="num">$193K</td><td class="num">$1.38M</td><td class="num">$5.52M</td><td class="num">$19.3M</td>
+        </tr>
+        <tr>
+          <td class="label" style="color:var(--ink-faint);">Team + OpEx (est.)</td>
+          <td class="num" style="color:var(--ink-faint);">$400K</td>
+          <td class="num" style="color:var(--ink-faint);">$800K</td>
+          <td class="num" style="color:var(--ink-faint);">$1.5M</td>
+          <td class="num" style="color:var(--ink-faint);">$3M</td>
+        </tr>
+        <tr class="total">
+          <td class="label">EBITDA</td>
+          <td class="num" style="color:var(--ink-faint);">−$207K</td>
+          <td class="num" style="color:var(--synthetic);">+$580K</td>
+          <td class="num" style="color:var(--synthetic);">+$4.0M</td>
+          <td class="num" style="color:var(--synthetic);">+$16.3M</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.5;">
+      OpEx assumes lean team: 3 people (Y1) → 5 (Y2) → 8 (Y3) → 12 (Y4). No dedicated sales team in Years 1–2 — PLG only. Marketing: conferences, academic community, GitHub presence.
+    </div>
+  </div>
+
+  <!-- Competitive benchmarks — three dimensions -->
+  <div class="card accent-tinted">
+    <div class="card-label">Competitive benchmarks — three dimensions</div>
+    <div class="body" style="margin-bottom:18px;">
+      <p>A researcher today uses Gretel to generate, uploads to Julius to analyze, looks for data on Snowflake separately. SPHERE does all three in one local deployment.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Company</th><th>ARR</th><th>Gross margin</th><th>What they do</th><th>What they cannot do</th><th>Exit / funding</th></tr>
+
+        <!-- Dimension 1 -->
+        <tr>
+          <td colspan="6" style="background:var(--accent-lt); font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); padding:8px 14px;">
+            Dimension 1 — Synthetic data generation &amp; certification
+          </td>
+        </tr>
+        <tr>
+          <td class="label">Gretel.ai</td>
+          <td class="num">~$9.7M est.</td><td class="num">~55%</td>
+          <td>API-first synthetic data for AI/ML training pipelines</td>
+          <td>Data must enter Gretel's cloud — cannot run air-gapped or on hospital hardware</td>
+          <td>$320M NVIDIA acquisition · <strong>~33× ARR</strong> <span style="font-weight:400;font-size:11px;color:var(--ink-faint);">(multiple back-calculated; ARR not independently published)</span></td>
+        </tr>
+        <tr>
+          <td class="label">Mostly AI</td>
+          <td class="num">~$5M est.</td><td class="num">~50%</td>
+          <td>Synthetic data platform, financial &amp; insurance focus</td>
+          <td>Cloud-hosted generation; on-prem option limited and expensive</td>
+          <td>$25M raised (Series B)</td>
+        </tr>
+        <tr>
+          <td class="label">MDclone</td>
+          <td class="num">~$15M est.</td><td class="num">~60%</td>
+          <td>Enterprise health synthetic data, on-premise hospital deployment</td>
+          <td>Health only; proprietary deployment teams at each site; no self-serve</td>
+          <td>$104M raised (Series C)</td>
+        </tr>
+
+        <!-- Dimension 2 -->
+        <tr>
+          <td colspan="6" style="background:var(--syn-lt); font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--synthetic); padding:8px 14px;">
+            Dimension 2 — Data-centered AI analysis
+          </td>
+        </tr>
+        <tr>
+          <td class="label">Julius AI</td>
+          <td class="num">$15M</td><td class="num">~65%</td>
+          <td>PLG AI data analyst — upload any CSV and ask questions</td>
+          <td>Works only on data the user can upload; cannot reach restricted, IRB-gated, or on-prem datasets</td>
+          <td>$10M seed (July 2025)</td>
+        </tr>
+        <tr>
+          <td class="label">Cursor</td>
+          <td class="num">~$100M</td><td class="num">~70%</td>
+          <td>AI code editor — context-aware, file-linked, domain knowledge built in</td>
+          <td>Code repositories only; no concept of sensitive data governance or statistical methodology</td>
+          <td>$900M raised · $2.5B valuation</td>
+        </tr>
+
+        <!-- Dimension 3 -->
+        <tr>
+          <td colspan="6" style="background:var(--pair-lt); font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--pair); padding:8px 14px;">
+            Dimension 3 — Sensitive data catalog &amp; marketplace
+          </td>
+        </tr>
+        <tr>
+          <td class="label">Snowflake</td>
+          <td class="num">$3.6B</td><td class="num">~65%</td>
+          <td>Data cloud + marketplace; ~3,000 live commercial data listings</td>
+          <td>Every dataset requires ingestion into Snowflake's object storage — a separate pipeline project per data source, plus ongoing storage and compute costs</td>
+          <td>Public (SNOW) · $50B+ market cap</td>
+        </tr>
+        <tr>
+          <td class="label">Databricks</td>
+          <td class="num">$3.7B</td><td class="num">~60%</td>
+          <td>Data + AI platform; Delta Sharing open protocol for cloud-hosted data</td>
+          <td>Delta Sharing requires cloud-accessible object storage — institutions must first build egress infrastructure to connect their on-prem systems before anything can be shared</td>
+          <td>$15.3B raised · $62B valuation</td>
+        </tr>
+
+        <!-- SPHERE row -->
+        <tr class="hl">
+          <td class="label" style="font-weight:700;">SPHERE (base Y3)</td>
+          <td class="num" style="color:var(--accent); font-weight:700;">$6M</td>
+          <td class="num" style="color:var(--synthetic); font-weight:700;">~92%</td>
+          <td style="font-weight:600;">One platform covering all three dimensions. Generate, analyze with AI, and catalog — in a single local deployment, any sensitive data, any domain.</td>
+          <td style="color:var(--synthetic);">N/A — this is the only platform with no structural exclusion of sensitive data</td>
+          <td>—</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-top:14px;line-height:1.7;">
+      <strong style="color:var(--ink);">Gross profit at $6M ARR:</strong> SPHERE ~$5.5M · Julius ~$3.9M · Gretel ~$3.3M. SPHERE's Y3 gross profit exceeds Gretel's at acquisition.<br><br>
+      <strong style="color:var(--ink);">Exit signals by dimension:</strong> Generation — Gretel 33× (NVIDIA, infrastructure thesis) · AI analysis — Julius $10M seed at $15M ARR · Catalog — Databricks $62B valuation on data-sharing thesis.<br><br>
+      <strong style="color:var(--ink);">Strategic acquirers:</strong> Health — Epic, Oracle Health, Veeva, Tempus · Infrastructure — NVIDIA, Databricks · Government — Palantir, Booz Allen · Each acquirer adds a local-deploy, zero-infrastructure model to their portfolio — the deployment tier their current platform does not offer.
+    </div>
+  </div>
+
+  <!-- End-game platform ARR -->
+  <div class="card accent-tinted">
+    <div class="card-label">End-game platform ARR — marketplace economics (Y6–Y8) <span style="font-weight:400; text-transform:none; font-family:var(--serif); font-size:12px; color:var(--ink-faint); letter-spacing:0;">· Illustrative</span></div>
+    <div class="body" style="margin-bottom:16px;">
+      <p>Years 1–5 model a <strong>SaaS tool</strong>: individual users paying subscription and usage fees. From Year 6 onward, SPHERE becomes a <strong>two-sided platform</strong>. A second revenue layer — marketplace access fees — stacks on top of SaaS ARR as institutional data producers publish and consumers pay for in-place AI access.</p>
+      <p style="margin-top:10px;color:var(--ink-dim);font-size:15.5px;">Marketplace GMV = total access fees paid by consumers to explore institutional datasets. SPHERE takes 20–25% of GMV. Producers keep the remainder — the revenue-share model that incentivizes more contributions.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>Year</th>
+          <th>SaaS ARR</th>
+          <th>Active dataset listings</th>
+          <th>Marketplace GMV</th>
+          <th>SPHERE take (25%)</th>
+          <th style="color:var(--accent);">Total platform ARR</th>
+        </tr>
+        <tr>
+          <td class="label">Y5</td>
+          <td class="num">$55M</td>
+          <td class="num">50</td>
+          <td class="num">$8M</td>
+          <td class="num">$2M</td>
+          <td class="num" style="color:var(--accent);">$57M</td>
+        </tr>
+        <tr class="hl">
+          <td class="label">Y6</td>
+          <td class="num">$85M</td>
+          <td class="num">200</td>
+          <td class="num">$40M</td>
+          <td class="num">$10M</td>
+          <td class="num" style="color:var(--accent);">$95M</td>
+        </tr>
+        <tr>
+          <td class="label">Y7</td>
+          <td class="num">$130M</td>
+          <td class="num">600</td>
+          <td class="num">$150M</td>
+          <td class="num">$37M</td>
+          <td class="num" style="color:var(--accent);">$167M</td>
+        </tr>
+        <tr>
+          <td class="label">Y8</td>
+          <td class="num">$185M</td>
+          <td class="num">1,500</td>
+          <td class="num">$400M</td>
+          <td class="num">$100M</td>
+          <td class="num" style="color:var(--accent);">$285M</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:12px;line-height:1.6;">
+      GMV assumption: 600 datasets by Y7 × avg 250 consumer accounts/dataset × $1,000/yr access = $150M GMV. Conservative — Snowflake's marketplace has 3,000+ listings; SPHERE's are irreplaceable (no competing source exists). Producer revenue share creates compounding supply-side incentive.
+    </div>
+    <div class="card-label" style="margin-top:22px;">Exit context at platform scale</div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Scenario</th><th>ARR</th><th>Multiple</th><th>Implied valuation</th><th>Comparable</th></tr>
+        <tr>
+          <td class="label">Y5 base · SaaS</td>
+          <td class="num">$55M</td><td class="num">15×</td>
+          <td class="num">$825M</td>
+          <td>Standard SaaS, pre-marketplace</td>
+        </tr>
+        <tr class="hl">
+          <td class="label">Y6 platform · base</td>
+          <td class="num">$95M</td><td class="num">20×</td>
+          <td class="num" style="color:var(--accent);">$1.9B</td>
+          <td>Marketplace premium (network effects priced in)</td>
+        </tr>
+        <tr>
+          <td class="label">Y7 platform · base</td>
+          <td class="num">$167M</td><td class="num">20×</td>
+          <td class="num" style="color:var(--accent);">$3.3B</td>
+          <td>Databricks-tier; likely acquisition target by then</td>
+        </tr>
+        <tr>
+          <td class="label">Gretel precedent · 33×</td>
+          <td class="num">$55M (Y5)</td><td class="num">33×</td>
+          <td class="num" style="color:var(--accent);">$1.8B</td>
+          <td>NVIDIA-style strategic premium on data infrastructure</td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-top:14px;line-height:1.6;">
+      Marketplace platforms command premium multiples over pure SaaS because GMV growth compounds independently of team size. At $285M total ARR (Y8), SPHERE operates at Databricks' early scale — the same company listed as a strategic acquirer. The data-that-cannot-move category has no ceiling: it grows with every new regulation, every new HIPAA-covered entity that digitizes, every country that passes a data sovereignty law.
+    </div>
+  </div>
+
+  <hr class="div">
+  <div class="foot">SPHERE Business Model · v1.1 · Internal reference · Early stage — subject to revision</div>
+
+</div>
+</body>
+</html>

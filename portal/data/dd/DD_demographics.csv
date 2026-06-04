@@ -1,0 +1,7 @@
+column,type,description,n_unique,n_missing,pct_missing,levels
+adrc_id,ID,ADRC participant unique identifier,697,0,0,
+ethnicity,categorical,Participant's self-reported ethnicity (Hispanic/Latino status),3,0,0,Hispanic or Latino ; NOT Hispanic or Latino ; Unknown / Not Reported
+origin,categorical,Participant's self-reported country or region of origin (high missingness; collected for Hispanic/Latino participants),21,630,90.39,"Argentina ; Bolivia ; Central America ; Central American ; Colombia ; Ecuador ; Huancayo, Peru ; Mexican ; Mexican American ; Mexican Chicano or American ; Mexican, chicano ; Mexican, Chicano or Mexican-American ; Mexico ; Peru ; Puerto Rican ; Puerto Rico ; South America ; South American ; South American (Argentina) ; Unknown ; Venezuela"
+race,categorical,Participant's self-reported racial category,7,0,0,American Indian/Alaska Native ; Asian ; Black or African American ; More Than One Race ; Native Hawaiian or Other Pacific Islander ; Unknown / Not Reported ; White
+additional_race,categorical,Additional self-reported racial category when participant selected more than one race,2,693,99.43,"White ; white, black, indian"
+sex,categorical,Biological sex of the participant as recorded at enrollment,2,0,0,female ; male
