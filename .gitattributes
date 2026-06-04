@@ -1,1 +1,1 @@
-portal/data/sphere/scrna.csv filter=lfs diff=lfs merge=lfs -text
+portal/data/sphere/*.csv filter=lfs diff=lfs merge=lfs -text
