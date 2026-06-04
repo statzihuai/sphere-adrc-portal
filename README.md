@@ -30,16 +30,16 @@ The portal includes a **SPHERE AI Agent** tab: an embedded AI analyst (powered b
     │   ├── adrc_dd.js         ← Data dictionary (~3MB)
     │   ├── adrc_validation.js ← Privacy/utility validation metrics
     │   ├── dd/                ← Source data dictionary CSVs (11 files)
-    │   └── sphere/            ← Full SPHERE×2 per-modality CSVs (via Git LFS)
-    │       ├── demographics_diagnosis.csv
-    │       ├── cognitive_scores.csv
-    │       ├── biomarkers.csv
-    │       ├── imaging_amyloid.csv
-    │       ├── imaging_tau.csv
-    │       ├── wgs.csv
-    │       ├── proteomics_csf.csv
-    │       ├── proteomics_plasma.csv
-    │       └── scrna.csv      ← 1.1GB — stored via Git LFS
+    │   └── sphere/            ← Full SPHERE×2 per-modality CSVs — all via Git LFS
+    │       ├── demographics_diagnosis.csv   (264 KB)
+    │       ├── cognitive_scores.csv         (840 KB)
+    │       ├── biomarkers.csv               ( 44 KB)
+    │       ├── imaging_amyloid.csv          (1.3 MB)
+    │       ├── imaging_tau.csv              (960 KB)
+    │       ├── wgs.csv                      (1.2 MB)
+    │       ├── proteomics_csf.csv           ( 13 MB)
+    │       ├── proteomics_plasma.csv        ( 48 MB)
+    │       └── scrna.csv                    (1.1 GB)
     └── scripts/
         ├── inject_data.py     ← Rebuilds adrc_data.js from sphere/ CSVs
         ├── inject_dd.py       ← Rebuilds adrc_dd.js from dd/ CSVs
@@ -67,7 +67,7 @@ git clone https://github.com/statzihuai/sphere-adrc-portal
 cd sphere-adrc-portal
 ```
 
-Git LFS automatically downloads all `portal/data/sphere/*.csv` files on clone, including `scrna.csv` (1.1GB).
+Git LFS automatically downloads all `portal/data/sphere/*.csv` files on clone (~1.2 GB total). The largest file is `scrna.csv` (1.1 GB).
 
 ### Run the portal locally
 
