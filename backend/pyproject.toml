@@ -20,7 +20,7 @@ server = [
   "workos",
   "pyjwt[crypto]",
 ]
-test = ["pytest"]
+test = ["pytest", "httpx"]
 
 [build-system]
 requires = ["setuptools>=68"]
