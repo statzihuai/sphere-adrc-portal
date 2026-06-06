@@ -59,3 +59,4 @@ tests — handy in minimal CI.
 |-----------------------|--------------------------------------|----------------------------------|
 | `SPHERE_APP_ENV`      | `development`                        | `development`/`staging`/`production` |
 | `SPHERE_CORS_ORIGINS` | Stanford AFS + localhost (see config) | comma-separated allowed origins  |
+| `SPHERE_DATABASE_URL`  | `sqlite+aiosqlite:///./sphere.db`    | async SQLAlchemy URL (Postgres: `postgresql+asyncpg://…`) |

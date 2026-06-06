@@ -158,15 +158,15 @@ CREATE INDEX ON credit_ledger (user_id, ts DESC);
 CREATE INDEX ON api_usage_log (user_id, ts DESC);
 ```
 
-### 4.3 Auth flow (WorkOS)
+### 4.3 Auth flow (WorkOS — reconciled with WorkOS docs 2026-06)
 
-1. Frontend "Sign in" → `GET /auth/login` → 302 to AuthKit hosted UI.
-2. AuthKit → `GET /auth/callback?code=...` → backend exchanges code for `{access_token, refresh_token, user}`.
-3. **JIT provisioning** (idempotent on `workos_user_id`, single transaction):
-   - upsert `users`; if newly created → create Stripe Customer, insert `billing`, and if `NOT trial_used` insert `credit_ledger(+10, 'trial_grant', idempotency_key='trial:<user_id>')` + set `trial_used=true, credit_balance_usd=10`.
-4. Backend returns tokens to the browser (stored where `agent_key` lived in `sessionStorage`).
-5. **Per-request auth dependency:** verify access JWT against WorkOS JWKS (keys cached in Redis, refreshed on `kid` miss); extract `sub`→`workos_user_id`→`user_id`. Reject `401` on failure.
-6. **Refresh:** `POST /auth/refresh` (refresh_token → new access_token). Browser refreshes proactively at ~4 min and reactively on `401` mid-loop, then retries the failed request once.
+1. Frontend "Sign in" → `GET /auth/login` → 302 to AuthKit hosted UI (`get_authorization_url(provider="authkit", redirect_uri, client_id)`).
+2. AuthKit → `GET /auth/callback?code=...&state=...` → verify `state`, then `authenticate_with_code(code, client_id)` → `{access_token, refresh_token, user}`. **The `user` object (WorkOS id + email) is in this response — no webhook needed** to create our local record (`user.created` webhook is optional belt-and-suspenders).
+3. **Local provisioning** (our term — distinct from WorkOS's SSO "JIT provisioning" feature). Idempotent on `workos_user_id`, single transaction:
+   - insert `users`; on conflict (concurrent first-login) catch the unique-violation and re-select. If newly created → create Stripe Customer, insert `billing`, grant trial via the wallet `credit()` → `credit_ledger(+10, 'trial_grant', idempotency_key='trial:<user_id>')`, set `trial_used=true, credit_balance_usd=10`. The unique `idempotency_key` guarantees the grant lands exactly once.
+4. Backend returns tokens to the browser. **Session custody — Option A (v1):** bearer access token in `sessionStorage` (reusing `_agentKey`). WorkOS's *recommended* default is a sealed-session **httpOnly cookie**, but the portal is a static SPA on `web.stanford.edu` and the API is on another domain, so any cookie is cross-site (SameSite=None;Secure, third-party-cookie-fragile). Bearer + JWKS is officially supported and the pragmatic cross-site choice; mitigate the XSS exposure with a short access-token TTL, `sessionStorage` (not `localStorage`), and a strict CSP. *Revisit if the portal is ever served same-site as the API → then prefer the secure sealed-cookie default.*
+5. **Per-request auth dependency:** verify the access-token JWT against WorkOS's JWKS at `https://api.workos.com/sso/jwks/<client_id>` (keys cached in Redis, refreshed on `kid` miss; Python: `pyjwt[crypto]` + `PyJWKClient`). Claims: `sub` (WorkOS user id), `sid`, `iss`, `org_id`, `role`, `permissions`, `exp`, `iat`. Map `sub`→`workos_user_id`→`user_id`. Reject `401` on failure.
+6. **Refresh:** `POST /auth/refresh` (`authenticate_with_refresh_token`). **Refresh tokens rotate** — the response returns a *new* access **and** refresh token; persist the new refresh token and discard the old. Browser refreshes proactively at ~4 min and reactively on `401` mid-loop, then retries the failed request once.
 
 ### 4.4 Wallet: reserve → settle (the integrity core)
 
