@@ -172,7 +172,7 @@ CREATE INDEX ON api_usage_log (user_id, ts DESC);
 
 Because cost is unknown until a turn completes and **an SSE stream can't be un-sent**, use **reserve-then-settle** rather than naive post-deduction:
 
-- **Pre-flight (before forwarding):** estimate a turn ceiling `RESERVE = max_tokens(8192)·output_rate·platform_mult + a fixed input allowance`. In one `FOR UPDATE` txn: if `credit_balance_usd - reserved_usd < RESERVE` → **402**; else `reserved_usd += RESERVE`, write a pending `api_usage_log(request_id)`.
+- **Pre-flight (before forwarding):** compute the turn ceiling `RESERVE = (input_tokens·input_rate + max_output_tokens·output_rate)·platform_mult`, where `input_tokens` is the **counted size of the outbound request** (system + tools + messages) — not a fixed allowance. Since output is hard-capped at `max_output_tokens` and every input token is billed at full rate (cache status only affects SPHERE's cost), this hold is provably ≥ the settled charge, including large-cached-prefix agent turns. (`reserve_estimate(..., input_tokens=...)`; a fixed fallback is used only if the count is unavailable.) In one `FOR UPDATE` txn: if `credit_balance_usd - reserved_usd < RESERVE` → **402**; else `reserved_usd += RESERVE`, write a pending `api_usage_log(request_id)`.
 - **Settle (after usage known):** in one `FOR UPDATE` txn: compute actual `user_charge`; `reserved_usd -= RESERVE`; `credit_balance_usd -= user_charge`; finalize `api_usage_log`; insert `credit_ledger(-user_charge, 'ai_usage', api_usage_id, idempotency_key=request_id)`.
 - **Floor:** a small `MIN_BALANCE` (e.g. $0) — balance may settle marginally negative on one unusually large turn (acceptable; next request blocks at pre-flight). This is the deliberate trade vs. aborting a paid Anthropic call mid-stream.
 
@@ -306,9 +306,9 @@ The **report-generation call** ([L4634](portal/index.html#L4634)) routes through
 2. **Provider/model** — **Anthropic**. Serve **Sonnet 4.6** (`claude-sonnet-4-6`, $3/$15) as default; **Opus 4.8** (`claude-opus-4-8`, $5/$25) as premium tier; **Haiku 4.5** for cheap lookups. Fix stale `claude-opus-4-5` in the frontend. Gemini deferred to a possible future cheap tier via `model_rates`.
 3. **Egress** — **not metered in v1**. Parquet + Cloudflare R2 ⇒ ~$0 egress; gate full-data download behind auth + any payment.
 4. **Subscription** — **ship both at launch**: $29/mo subscription *and* PAYG credit packs.
+5. **Reserve ceiling** — derived from the **counted request input** + `max_output_tokens` (not a fixed allowance), guaranteeing the hold covers the settled charge for large-context turns. Fixed fallback only when the count is unavailable.
 6. **Generation/certify metering** — **out of scope.** This portal does AI Q&A over pre-generated data only; it never generates, so there are no cells to meter. (Revisit if SPHERE's generation product later shares this wallet.)
 
 **Still open:**
-5. **Reserve ceiling** — fixed per-turn RESERVE, or derived from model `max_tokens`? Affects how aggressively low-balance users are blocked mid-turn.
 7. **DUA intake** — fold into this backend (DB + PI email) now, or leave the Google Apps Script `DUA_ENDPOINT` until Phase 2?
 ```

@@ -104,9 +104,9 @@ def test_no_float_drift_everything_is_decimal():
         assert -value.as_tuple().exponent <= 6
 
 
-# ── reserve estimation (open question 5 default) ─────────────────────────────
-def test_reserve_estimate_sonnet_default_allowance():
-    # 8192·$15/1M + 10000·$3/1M = 0.12288 + 0.03 = 0.15288, ×1.3 = 0.198744
+# ── reserve estimation ───────────────────────────────────────────────────────
+def test_reserve_estimate_fallback_when_input_unknown():
+    # input unknown → 10k fallback: 8192·$15/1M + 10000·$3/1M = 0.15288, ×1.3
     est = reserve_estimate(get_rate("claude-sonnet-4-6"), max_output_tokens=8192)
     assert est == Decimal("0.198744")
 
@@ -115,3 +115,34 @@ def test_reserve_scales_with_max_output_and_model():
     opus = reserve_estimate(get_rate("claude-opus-4-8"), max_output_tokens=8192)
     sonnet = reserve_estimate(get_rate("claude-sonnet-4-6"), max_output_tokens=8192)
     assert opus > sonnet  # opus output is pricier → larger hold
+
+
+def test_reserve_from_counted_input_covers_worst_case_charge():
+    # The hold must dominate the settled charge. With input counted, it equals
+    # the worst case (output hits max_tokens, every input token billed).
+    rate = get_rate("claude-sonnet-4-6")
+    input_tokens, max_output = 50_000, 8192
+    est = reserve_estimate(rate, max_output, input_tokens=input_tokens)
+    worst = user_charge(Usage(input_tokens, 0, 0, max_output), rate)
+    assert est == worst
+    # cache split is irrelevant — same billed_input → same charge, still covered
+    cached = user_charge(Usage(10_000, 0, 40_000, max_output), rate)
+    assert est >= cached
+
+
+def test_fallback_under_reserves_large_context_so_proxy_must_count():
+    # Documents the risk the count closes: a turn that reads a big cached prefix
+    # is billed for all of it (cache_read at full input rate), so the fixed
+    # fallback under-reserves while passing the real count covers it.
+    rate = get_rate("claude-sonnet-4-6")
+    actual = user_charge(Usage(0, 0, 50_000, 8192), rate)  # 50k read from cache
+    assert reserve_estimate(rate, 8192) < actual                      # fallback: short
+    assert reserve_estimate(rate, 8192, input_tokens=50_000) >= actual  # counted: covered
+
+
+def test_reserve_estimate_rejects_negative_counts():
+    rate = get_rate("claude-sonnet-4-6")
+    with pytest.raises(ValueError):
+        reserve_estimate(rate, -1)
+    with pytest.raises(ValueError):
+        reserve_estimate(rate, 8192, input_tokens=-5)

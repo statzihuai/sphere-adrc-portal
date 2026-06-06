@@ -7,7 +7,7 @@ truth for what a user is charged and what SPHERE pays Anthropic.
 """
 
 from .rates import ModelRate, UnknownModelError, get_rate, list_models
-from .reserve import DEFAULT_INPUT_ALLOWANCE_TOKENS, reserve_estimate
+from .reserve import DEFAULT_FALLBACK_INPUT_TOKENS, reserve_estimate
 from .usage import (
     Usage,
     UsageRecord,
@@ -31,5 +31,5 @@ __all__ = [
     "sphere_cost",
     "user_charge",
     "reserve_estimate",
-    "DEFAULT_INPUT_ALLOWANCE_TOKENS",
+    "DEFAULT_FALLBACK_INPUT_TOKENS",
 ]
