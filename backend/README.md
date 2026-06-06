@@ -53,6 +53,28 @@ The `/health` tests `importorskip` FastAPI, so `pip install -e ".[test]"` alone
 (no server extra) still runs the pure billing/wallet suite and skips the HTTP
 tests — handy in minimal CI.
 
+## Auth (WorkOS AuthKit)
+
+The auth endpoints — `GET /auth/login`, `GET /auth/callback`, `POST /auth/refresh`,
+`GET /auth/me` — use WorkOS. **Tests need no WorkOS account** (the provider is
+mocked and JWTs are verified with a locally-generated keypair). To exercise the
+real browser sign-up flow locally:
+
+1. Create a WorkOS account, enable **AuthKit**, and stay in **test mode**.
+2. In the WorkOS dashboard, add redirect URI `http://localhost:8000/auth/callback`.
+3. `cp .env.example .env` and fill in `WORKOS_API_KEY`, `WORKOS_CLIENT_ID`.
+4. Run with the env file:
+   ```bash
+   uvicorn sphere_backend.app:app --reload --env-file .env
+   ```
+5. Visit `http://localhost:8000/auth/login` → WorkOS hosted page → on return,
+   `/auth/callback` provisions your account (+ $10 trial) and returns tokens.
+   Call `GET /auth/me` with `Authorization: Bearer <access_token>` to see the
+   balance.
+
+Without WorkOS env vars, `/auth/*` return **503** and the rest of the app runs
+normally.
+
 ## Configuration
 
 | Env var               | Default                              | Purpose                          |
@@ -60,3 +82,6 @@ tests — handy in minimal CI.
 | `SPHERE_APP_ENV`      | `development`                        | `development`/`staging`/`production` |
 | `SPHERE_CORS_ORIGINS` | Stanford AFS + localhost (see config) | comma-separated allowed origins  |
 | `SPHERE_DATABASE_URL`  | `sqlite+aiosqlite:///./sphere.db`    | async SQLAlchemy URL (Postgres: `postgresql+asyncpg://…`) |
+| `WORKOS_API_KEY`       | — (auth disabled)                    | WorkOS secret key (test or live) |
+| `WORKOS_CLIENT_ID`     | — (auth disabled)                    | WorkOS client id |
+| `WORKOS_REDIRECT_URI`  | `http://localhost:8000/auth/callback` | must match the WorkOS dashboard |
