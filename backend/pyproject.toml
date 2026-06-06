@@ -1,0 +1,33 @@
+[project]
+name = "sphere-backend"
+version = "0.0.1"
+description = "SPHERE backend — auth, prepaid wallet, Anthropic proxy, Stripe billing"
+requires-python = ">=3.10"
+# Runtime deps (FastAPI, SQLAlchemy, httpx, stripe, workos, redis) are added in
+# later slices when their wiring lands. The billing/wallet core is pure stdlib.
+dependencies = []
+
+[project.optional-dependencies]
+# Installed in environments that run the service or its integration tests.
+server = [
+  "fastapi",
+  "uvicorn[standard]",
+  "httpx",
+  "sqlalchemy",
+  "asyncpg",
+  "redis",
+  "stripe",
+  "workos",
+  "pyjwt[crypto]",
+]
+test = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["sphere_backend*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
