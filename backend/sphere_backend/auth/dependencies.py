@@ -45,6 +45,13 @@ def get_jwks_client(request: Request):
     return client
 
 
+def get_anthropic_streamer(request: Request):
+    streamer = getattr(request.app.state, "anthropic_streamer", None)
+    if streamer is None:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Anthropic not configured")
+    return streamer
+
+
 async def current_user(
     authorization: str | None = Header(default=None),
     session: AsyncSession = Depends(get_session),

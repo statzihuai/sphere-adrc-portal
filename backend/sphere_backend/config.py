@@ -42,6 +42,10 @@ class Settings:
     workos_api_key: str = ""
     workos_client_id: str = ""
     workos_redirect_uri: str = "http://localhost:8000/auth/callback"
+    # Anthropic — SPHERE's centralized key (the margin engine). Empty → /v1/agent 503.
+    anthropic_api_key: str = ""
+    anthropic_base_url: str = "https://api.anthropic.com"
+    default_model: str = "claude-sonnet-4-6"
 
     @property
     def cookie_secure(self) -> bool:
@@ -63,4 +67,7 @@ def get_settings() -> Settings:
         workos_redirect_uri=os.environ.get(
             "WORKOS_REDIRECT_URI", "http://localhost:8000/auth/callback"
         ),
+        anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
+        anthropic_base_url=os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com"),
+        default_model=os.environ.get("SPHERE_DEFAULT_MODEL", "claude-sonnet-4-6"),
     )

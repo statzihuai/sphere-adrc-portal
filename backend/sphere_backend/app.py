@@ -21,12 +21,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import __version__
-from .api import auth, health
+from .api import agent, auth, health
 from .auth.provider import build_workos_provider
 from .auth.jwt import build_jwks_client
 from .config import Settings, get_settings
 from .db import Base
 from .db.session import build_engine, build_sessionmaker
+from .proxy.upstream import build_anthropic_streamer
 
 
 @asynccontextmanager
@@ -45,6 +46,12 @@ async def lifespan(app: FastAPI):
     provider = build_workos_provider(settings)
     app.state.auth_provider = provider
     app.state.jwks_client = build_jwks_client(provider.jwks_url) if provider else None
+
+    app.state.anthropic_streamer = (
+        build_anthropic_streamer(settings.anthropic_api_key, settings.anthropic_base_url)
+        if settings.anthropic_api_key
+        else None
+    )
 
     try:
         yield
@@ -68,6 +75,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(auth.router)
+    app.include_router(agent.router)
     return app
 
 

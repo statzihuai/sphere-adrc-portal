@@ -15,7 +15,10 @@ sphere_backend/
   config.py         env-driven Settings (get_settings)
   api/health.py     GET /health (liveness)
   billing/          model rates + token charge/cost/margin + reserve estimate
-  wallet/           prepaid wallet: reserve → settle, 402, ledger entries
+  wallet/           prepaid wallet: reserve → settle, 402, ledger entries (core + DB adapter)
+  usage/            reservation lifecycle: open → finalize/cancel + reclaim_stale
+  proxy/            Anthropic SSE streamer + token capture
+  api/agent.py      POST /v1/agent — the streaming proxy (the margin engine)
 tests/              pytest suite (pure-logic tests + /health)
 ```
 
