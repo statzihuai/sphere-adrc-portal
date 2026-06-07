@@ -53,6 +53,7 @@ class Settings:
     # Stripe. Empty api_key → /billing/* return 503.
     stripe_api_key: str = ""
     stripe_webhook_secret: str = ""
+    stripe_api_version: str = ""          # pin to reproduce event shapes (e.g. 2025-…)
     stripe_price_subscription: str = ""   # the $29/mo Price id (price_…)
     stripe_success_url: str = "http://localhost:8000/billing/success"
     stripe_cancel_url: str = "http://localhost:8000/billing/cancel"
@@ -85,6 +86,7 @@ def get_settings() -> Settings:
         reclaim_interval_seconds=int(os.environ.get("SPHERE_RECLAIM_INTERVAL_SECONDS", "300")),
         stripe_api_key=os.environ.get("STRIPE_API_KEY", ""),
         stripe_webhook_secret=os.environ.get("STRIPE_WEBHOOK_SECRET", ""),
+        stripe_api_version=os.environ.get("STRIPE_API_VERSION", ""),
         stripe_price_subscription=os.environ.get("STRIPE_PRICE_SUBSCRIPTION", ""),
         stripe_success_url=os.environ.get("STRIPE_SUCCESS_URL", "http://localhost:8000/billing/success"),
         stripe_cancel_url=os.environ.get("STRIPE_CANCEL_URL", "http://localhost:8000/billing/cancel"),

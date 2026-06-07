@@ -232,7 +232,7 @@ The **report-generation call** ([L4634](portal/index.html#L4634)) routes through
   | Event | Action |
   |---|---|
   | `checkout.session.completed` (mode=payment) | grant pack credits |
-  | `invoice.payment_succeeded` | grant +$20 AI + allowances, set `sub_status=active`, `sub_period_end` |
+  | `invoice.payment_succeeded` | set `sub_status=active`, `sub_period_end`; grant +$20 AI **only** when `amount_paid > 0` and `billing_reason ∈ {subscription_create, subscription_cycle}` (skip $0 trials / prorations). Credit packs use `amount_subtotal` (pre-tax). Pin `stripe_api_version` so these shapes are stable. (Cell allowances out of scope for this portal.) |
   | `invoice.payment_failed` | `sub_status=past_due`, email, restrict after grace |
   | `customer.subscription.deleted` | `sub_status=canceled`, drop allowances |
 

@@ -35,9 +35,14 @@ class WebhookVerificationError(Exception):
 class RealStripeClient:
     """Production ``StripeClient`` backed by the Stripe SDK."""
 
-    def __init__(self, api_key: str, webhook_secret: str):
+    def __init__(self, api_key: str, webhook_secret: str, api_version: str = ""):
         self._key = api_key
         self._webhook_secret = webhook_secret
+        if api_version:
+            # Pin so event shapes are reproducible across Stripe's default-version bumps.
+            import stripe
+
+            stripe.api_version = api_version
 
     def create_customer(self, *, email: str, metadata: dict) -> str:
         import stripe
@@ -106,4 +111,6 @@ def build_stripe_client(settings: Settings) -> RealStripeClient | None:
     """Build the real client, or ``None`` if Stripe isn't configured."""
     if not settings.stripe_api_key:
         return None
-    return RealStripeClient(settings.stripe_api_key, settings.stripe_webhook_secret)
+    return RealStripeClient(
+        settings.stripe_api_key, settings.stripe_webhook_secret, settings.stripe_api_version
+    )

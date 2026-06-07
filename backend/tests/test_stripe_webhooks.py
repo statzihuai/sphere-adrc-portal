@@ -69,6 +69,22 @@ async def test_checkout_payment_credits_pack(session):
     assert len(rows) == 1 and rows[0].stripe_pi_id == "pi_1"
 
 
+async def test_pack_prefers_pretax_subtotal(session):
+    # amount_total includes tax; credit the pre-tax amount_subtotal
+    ev = _event(
+        "checkout.session.completed",
+        {"mode": "payment", "customer": "cus_1", "amount_subtotal": 2500, "amount_total": 2700},
+    )
+    await handle_event(session, ev)
+    assert (await repository.get_state(session, session._uid)).balance_usd == D("25.000000")
+
+
+async def test_pack_missing_amount_is_ignored(session):
+    ev = _event("checkout.session.completed", {"mode": "payment", "customer": "cus_1"})
+    assert await handle_event(session, ev) == "ignored"
+    assert (await repository.get_state(session, session._uid)).balance_usd == D("0.000000")
+
+
 async def test_webhook_credit_is_idempotent_on_event_id(session):
     ev = _event("checkout.session.completed", {"mode": "payment", "customer": "cus_1", "amount_total": 2500})
     await handle_event(session, ev)
@@ -78,21 +94,39 @@ async def test_webhook_credit_is_idempotent_on_event_id(session):
 
 
 # ── subscription ─────────────────────────────────────────────────────────────
-async def test_invoice_paid_grants_and_activates(session):
-    ev = _event(
-        "invoice.payment_succeeded",
-        {
-            "customer": "cus_1",
-            "subscription": "sub_1",
-            "lines": {"data": [{"period": {"end": 1893456000}}]},
-        },
-    )
+def _invoice(**extra):
+    obj = {
+        "customer": "cus_1",
+        "subscription": "sub_1",
+        "lines": {"data": [{"period": {"end": 1893456000}}]},
+    }
+    obj.update(extra)
+    return obj
+
+
+async def test_invoice_paid_cycle_grants_and_activates(session):
+    ev = _event("invoice.payment_succeeded", _invoice(amount_paid=2900, billing_reason="subscription_cycle"))
     assert await handle_event(session, ev) == "invoice.payment_succeeded"
     assert (await repository.get_state(session, session._uid)).balance_usd == D("20.000000")
     b = await _billing(session)
     assert b.sub_status == "active" and b.stripe_sub_id == "sub_1" and b.sub_period_end is not None
     grants = (await session.execute(select(CreditLedger).where(CreditLedger.type == "subscription_grant"))).scalars().all()
     assert len(grants) == 1
+
+
+async def test_invoice_zero_trial_activates_but_no_grant(session):
+    # $0 trial invoice: subscription becomes active, but no $20 credit is granted
+    ev = _event("invoice.payment_succeeded", _invoice(amount_paid=0, billing_reason="subscription_create"))
+    await handle_event(session, ev)
+    assert (await repository.get_state(session, session._uid)).balance_usd == D("0.000000")  # no grant
+    assert (await _billing(session)).sub_status == "active"
+
+
+async def test_invoice_proration_no_grant(session):
+    # mid-cycle plan change: paid, but not a create/cycle invoice → no grant
+    ev = _event("invoice.payment_succeeded", _invoice(amount_paid=500, billing_reason="subscription_update"))
+    await handle_event(session, ev)
+    assert (await repository.get_state(session, session._uid)).balance_usd == D("0.000000")
 
 
 async def test_invoice_failed_sets_past_due(session):

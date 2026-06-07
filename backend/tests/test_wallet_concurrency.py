@@ -18,6 +18,7 @@ from sqlalchemy import func, select
 
 from sphere_backend.db import Base, Billing, CreditLedger, User, build_sessionmaker
 from sphere_backend.db.session import build_engine
+from sphere_backend.billing.payments import handle_event
 from sphere_backend.users import provision_user
 from sphere_backend.wallet import InsufficientCreditsError, repository
 
@@ -79,6 +80,49 @@ async def test_concurrent_reserves_no_double_spend(sessionmaker):
         state = await repository.get_state(s, uid)
         assert state.reserved_usd == D("0.200000")  # only one hold landed
         assert state.balance_usd == D("0.300000")
+
+
+async def test_concurrent_same_webhook_credits_once(sessionmaker):
+    # Two simultaneous deliveries of the same Stripe event must credit exactly once.
+    async with sessionmaker() as s:
+        user = User(workos_user_id="wos_pay", email="p@x.edu")
+        s.add(user)
+        await s.flush()
+        s.add(
+            Billing(
+                user_id=user.id,
+                stripe_customer_id="cus_pay",
+                credit_balance_usd=D("0"),
+                reserved_usd=D("0"),
+                trial_used=True,
+            )
+        )
+        await s.commit()
+        uid = user.id
+
+    event = {
+        "id": "evt_dup",
+        "type": "checkout.session.completed",
+        "data": {"object": {"mode": "payment", "customer": "cus_pay", "amount_total": 2500}},
+    }
+
+    async def deliver():
+        async with sessionmaker() as s:
+            await handle_event(s, event)
+
+    await asyncio.gather(deliver(), deliver())
+
+    async with sessionmaker() as s:
+        state = await repository.get_state(s, uid)
+        grants = (
+            await s.execute(
+                select(func.count())
+                .select_from(CreditLedger)
+                .where(CreditLedger.type == "credit_pack")
+            )
+        ).scalar_one()
+    assert state.balance_usd == D("25.000000")  # not 50
+    assert grants == 1
 
 
 async def test_concurrent_first_logins_one_user_one_grant(sessionmaker):

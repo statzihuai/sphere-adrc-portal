@@ -17,10 +17,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.models import Billing
 from ..wallet import repository
+from ..wallet.repository import WalletAccountNotFound
 from .stripe_client import StripeClient
 
 SUBSCRIPTION_GRANT_USD = Decimal("20")          # $20 AI credit per paid period
 ALLOWED_PACK_USD = (Decimal("10"), Decimal("25"), Decimal("50"))
+# Grant only for genuinely-paid subscription invoices — not $0 trials/prorations.
+_GRANT_BILLING_REASONS = {"subscription_create", "subscription_cycle"}
 
 
 async def ensure_customer(
@@ -33,7 +36,9 @@ async def ensure_customer(
     result = await session.execute(
         select(Billing).where(Billing.user_id == user_id).with_for_update()
     )
-    billing = result.scalar_one()
+    billing = result.scalar_one_or_none()
+    if billing is None:
+        raise WalletAccountNotFound(user_id)
     if billing.stripe_customer_id:
         return billing.stripe_customer_id
     customer_id = stripe.create_customer(email=email, metadata={"sphere_user_id": str(user_id)})
@@ -93,13 +98,17 @@ async def handle_event(session: AsyncSession, event: Mapping[str, Any]) -> str:
 
     if etype == "checkout.session.completed" and obj.get("mode") == "payment":
         user_id = await _user_id_by_customer(session, customer_id)
-        if user_id is None:
+        # amount_subtotal is the pre-tax product amount (what credits were bought);
+        # fall back to amount_total when subtotal is absent.
+        cents = obj.get("amount_subtotal")
+        if cents is None:
+            cents = obj.get("amount_total")
+        if user_id is None or cents is None:
             return "ignored"
-        amount = Decimal(obj["amount_total"]) / 100  # cents → dollars
         await repository.credit(
             session,
             user_id,
-            amount,
+            Decimal(cents) / 100,
             type="credit_pack",
             idempotency_key=event_id,
             stripe_pi_id=obj.get("payment_intent"),
@@ -110,13 +119,7 @@ async def handle_event(session: AsyncSession, event: Mapping[str, Any]) -> str:
         user_id = await _user_id_by_customer(session, customer_id)
         if user_id is None:
             return "ignored"
-        await repository.credit(
-            session,
-            user_id,
-            SUBSCRIPTION_GRANT_USD,
-            type="subscription_grant",
-            idempotency_key=event_id,
-        )
+        # The subscription is in good standing regardless of amount → reflect it.
         await _set_subscription(
             session,
             customer_id,
@@ -124,6 +127,17 @@ async def handle_event(session: AsyncSession, event: Mapping[str, Any]) -> str:
             sub_id=obj.get("subscription"),
             period_end=_invoice_period_end(obj),
         )
+        # Grant credit ONLY for a genuinely-paid create/renewal invoice — never on
+        # $0 trial invoices or mid-cycle proration (subscription_update).
+        amount_paid = int(obj.get("amount_paid") or 0)
+        if amount_paid > 0 and obj.get("billing_reason") in _GRANT_BILLING_REASONS:
+            await repository.credit(
+                session,
+                user_id,
+                SUBSCRIPTION_GRANT_USD,
+                type="subscription_grant",
+                idempotency_key=event_id,
+            )
         return etype
 
     if etype == "invoice.payment_failed":

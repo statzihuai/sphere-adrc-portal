@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import logging
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
@@ -29,6 +30,7 @@ from ..db.models import User
 from ..wallet import repository
 
 router = APIRouter(prefix="/billing", tags=["billing"])
+logger = logging.getLogger("sphere_backend.billing")
 
 
 class PackRequest(BaseModel):
@@ -120,7 +122,10 @@ async def webhook(
     try:
         event = stripe.verify_webhook(payload=payload, sig_header=stripe_signature or "")
     except WebhookVerificationError:
+        logger.warning("stripe webhook rejected: invalid signature")
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid signature")
     async with sessionmaker() as session:
         handled = await handle_event(session, event)
+    # Audit line for payment reconciliation (no secrets, just ids/result).
+    logger.info("stripe webhook %s type=%s -> %s", event.get("id"), event.get("type"), handled)
     return {"status": handled}
