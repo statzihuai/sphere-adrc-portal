@@ -35,6 +35,9 @@ class Settings:
 
     app_env: str = "development"          # development | staging | production
     cors_origins: tuple[str, ...] = field(default_factory=lambda: _DEFAULT_CORS_ORIGINS)
+    # Async SQLAlchemy URL. SQLite default for local dev; Postgres in prod
+    # (postgresql+asyncpg://…). Override with SPHERE_DATABASE_URL.
+    database_url: str = "sqlite+aiosqlite:///./sphere.db"
 
 
 @lru_cache
@@ -43,4 +46,7 @@ def get_settings() -> Settings:
     return Settings(
         app_env=os.environ.get("SPHERE_APP_ENV", "development"),
         cors_origins=_csv_env("SPHERE_CORS_ORIGINS", _DEFAULT_CORS_ORIGINS),
+        database_url=os.environ.get(
+            "SPHERE_DATABASE_URL", "sqlite+aiosqlite:///./sphere.db"
+        ),
     )

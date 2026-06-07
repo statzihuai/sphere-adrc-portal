@@ -13,14 +13,14 @@ server = [
   "fastapi",
   "uvicorn[standard]",
   "httpx",
-  "sqlalchemy",
+  "sqlalchemy[asyncio]",
   "asyncpg",
   "redis",
   "stripe",
   "workos",
   "pyjwt[crypto]",
 ]
-test = ["pytest", "httpx"]
+test = ["pytest", "httpx", "pytest-asyncio", "aiosqlite"]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -31,3 +31,4 @@ include = ["sphere_backend*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
