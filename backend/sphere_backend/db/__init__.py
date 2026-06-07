@@ -5,7 +5,7 @@ Importing this package registers all models on ``Base.metadata`` so
 """
 
 from .base import Base
-from .models import Billing, CreditLedger, User
+from .models import ApiUsageLog, Billing, CreditLedger, User
 from .session import build_engine, build_sessionmaker
 
 __all__ = [
@@ -13,6 +13,7 @@ __all__ = [
     "User",
     "Billing",
     "CreditLedger",
+    "ApiUsageLog",
     "build_engine",
     "build_sessionmaker",
 ]

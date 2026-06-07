@@ -71,3 +71,39 @@ class CreditLedger(Base):
     # Unique → a grant tagged with a given key lands exactly once, even under
     # concurrent first-logins or webhook retries.
     idempotency_key: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
+
+
+class ApiUsageLog(Base):
+    """One row per AI request — also the reservation record (BACKEND_DESIGN.md §4.5).
+
+    Created ``pending`` with the hold amount when the proxy reserves; transitions
+    to ``settled`` (usage finalized + charged) or ``canceled`` (request failed /
+    reclaimed). Holding the lifecycle on this row lets the hold on
+    ``billing.reserved_usd`` be released exactly once — by settle, cancel, or the
+    stale-reservation reclaim sweep — gated on the status under the billing lock.
+    """
+
+    __tablename__ = "api_usage_log"
+
+    id: Mapped[int] = mapped_column(_BIGINT_PK, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), index=True, nullable=False)
+    request_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    session_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    status: Mapped[str] = mapped_column(String, nullable=False, index=True)  # pending|settled|canceled
+    model: Mapped[str] = mapped_column(String, nullable=False)
+    reserved_usd: Mapped[Decimal] = mapped_column(USD, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+    finalized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Token accounting — populated at settle (the four Anthropic fields + derived).
+    input_tokens: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    cache_creation_tokens: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    cache_read_tokens: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    output_tokens: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    billed_input_tokens: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    billed_output_tokens: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    user_charge_usd: Mapped[Decimal | None] = mapped_column(USD, nullable=True)
+    sphere_cost_usd: Mapped[Decimal | None] = mapped_column(USD, nullable=True)
+    margin_usd: Mapped[Decimal | None] = mapped_column(USD, nullable=True)
