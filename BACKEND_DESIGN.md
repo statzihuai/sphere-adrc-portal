@@ -182,6 +182,13 @@ Because cost is unknown until a turn completes and **an SSE stream can't be un-s
 
 All other cost centers (generation/certify/egress) use the **same `FOR UPDATE` deduct helper**, just without the reserve (cost is known up front).
 
+**Reservation lifecycle (exactly-once hold release).** The pending `api_usage_log(request_id)` row *is* the reservation record, carrying a `status` (`pending` → `settled` | `canceled`) and the hold amount. The hold on `reserved_usd` is removed exactly once, gated on the row's status transition under the billing lock:
+- `finalize` (stream completed, usage known) → `settled`: release hold, deduct actual charge, write the `ai_usage` ledger row + the four token fields.
+- `cancel` (upstream error, exception, or client disconnect) → `canceled`: release hold, no charge. Run from the proxy generator's `finally`.
+- `reclaim_stale` (sweep): a periodic job cancels any `pending` row older than a TTL — the backstop for a hard process crash that ran neither finalize nor cancel.
+
+This closes the orphaned-hold gap: a request that dies mid-stream never permanently inflates the user's `reserved_usd`.
+
 ### 4.5 Anthropic streaming proxy — `POST /v1/agent`
 
 Request body: `{ model, system, tools, messages, max_tokens, stream:true }` (identical to today's payload).
