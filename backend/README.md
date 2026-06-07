@@ -53,6 +53,24 @@ The `/health` tests `importorskip` FastAPI, so `pip install -e ".[test]"` alone
 (no server extra) still runs the pure billing/wallet suite and skips the HTTP
 tests — handy in minimal CI.
 
+### Concurrency tests (real Postgres)
+
+`tests/test_wallet_concurrency.py` proves the no-double-spend and
+exactly-once-trial invariants under real `SELECT … FOR UPDATE` contention. They
+skip unless a Postgres DSN is provided. With Postgres binaries installed, spin an
+ephemeral cluster and point the tests at it:
+
+```bash
+PGDATA=$(mktemp -d); initdb -D "$PGDATA" -U postgres --auth=trust >/dev/null
+pg_ctl -D "$PGDATA" -o "-p 55432 -k $PGDATA -h 127.0.0.1" -l "$PGDATA/log" start
+createdb -h 127.0.0.1 -p 55432 -U postgres sphere_test
+SPHERE_TEST_DATABASE_URL="postgresql+asyncpg://postgres@127.0.0.1:55432/sphere_test" \
+  pytest tests/test_wallet_concurrency.py
+pg_ctl -D "$PGDATA" stop -m fast && rm -rf "$PGDATA"
+```
+
+Or point `SPHERE_TEST_DATABASE_URL` at any throwaway Postgres database.
+
 ## Auth (WorkOS AuthKit)
 
 The auth endpoints — `GET /auth/login`, `GET /auth/callback`, `POST /auth/refresh`,

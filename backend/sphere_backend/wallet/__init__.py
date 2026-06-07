@@ -9,6 +9,7 @@ it exhaustively testable without a DB and keeps the serialization concern in one
 place.
 """
 
+from . import repository
 from .core import (
     InsufficientCreditsError,
     LedgerEntry,
@@ -18,6 +19,7 @@ from .core import (
     reserve,
     settle,
 )
+from .repository import WalletAccountNotFound
 
 __all__ = [
     "InsufficientCreditsError",
@@ -27,4 +29,7 @@ __all__ = [
     "deduct",
     "reserve",
     "settle",
+    # DB-backed (row-locked) operations live under wallet.repository
+    "repository",
+    "WalletAccountNotFound",
 ]
