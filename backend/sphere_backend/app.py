@@ -15,6 +15,8 @@ Run locally:  ``uvicorn sphere_backend.app:app --reload``
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -28,6 +30,7 @@ from .config import Settings, get_settings
 from .db import Base
 from .db.session import build_engine, build_sessionmaker
 from .proxy.upstream import build_anthropic_streamer
+from .usage import run_reclaim_loop
 
 
 @asynccontextmanager
@@ -53,9 +56,21 @@ async def lifespan(app: FastAPI):
         else None
     )
 
+    # Background reclaim sweep — the guarantee that orphaned holds are freed.
+    reclaim_task = asyncio.create_task(
+        run_reclaim_loop(
+            app.state.sessionmaker,
+            ttl_seconds=settings.reservation_ttl_seconds,
+            interval_seconds=settings.reclaim_interval_seconds,
+        )
+    )
+
     try:
         yield
     finally:
+        reclaim_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await reclaim_task
         await engine.dispose()
 
 
