@@ -12,6 +12,7 @@ Capturing only ``message_delta`` would miss the cache fields and undercharge.
 
 from __future__ import annotations
 
+import codecs
 import json
 import math
 
@@ -49,6 +50,9 @@ class UsageCapture:
     """
 
     def __init__(self) -> None:
+        # Incremental decoder so a multi-byte char split across chunk boundaries
+        # isn't corrupted (chunk boundaries are arbitrary in a raw byte stream).
+        self._decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
         self._buf = ""
         self._input = 0
         self._cache_creation = 0
@@ -57,21 +61,24 @@ class UsageCapture:
         self._saw_start = False
 
     def feed(self, chunk: bytes) -> None:
-        self._buf += chunk.decode("utf-8", errors="ignore")
+        self._buf += self._decoder.decode(chunk)
         # Process complete lines; keep the trailing partial in the buffer.
         lines = self._buf.split("\n")
         self._buf = lines.pop()
         for line in lines:
-            if not line.startswith("data:"):
-                continue
-            payload = line[len("data:") :].strip()
-            if not payload or payload == "[DONE]":
-                continue
-            try:
-                event = json.loads(payload)
-            except json.JSONDecodeError:
-                continue
-            self._absorb(event)
+            self._process_line(line)
+
+    def _process_line(self, line: str) -> None:
+        if not line.startswith("data:"):
+            return
+        payload = line[len("data:") :].strip()
+        if not payload or payload == "[DONE]":
+            return
+        try:
+            event = json.loads(payload)
+        except json.JSONDecodeError:
+            return
+        self._absorb(event)
 
     def _absorb(self, event: dict) -> None:
         etype = event.get("type")
@@ -90,6 +97,12 @@ class UsageCapture:
                 self._output = int(usage["output_tokens"])
 
     def usage(self) -> Usage | None:
+        # Flush the decoder and process any complete trailing line (a final event
+        # not terminated by a newline before the stream closed).
+        tail = self._buf + self._decoder.decode(b"", final=True)
+        if tail:
+            self._process_line(tail)
+            self._buf = ""
         if not self._saw_start:
             return None
         return Usage(
