@@ -50,6 +50,13 @@ class Settings:
     # or a still-running request could be reclaimed (and then not charged).
     reservation_ttl_seconds: int = 1800   # 30 min — a pending hold older than this is dead
     reclaim_interval_seconds: int = 300   # sweep every 5 min
+    # Stripe. Empty api_key → /billing/* return 503.
+    stripe_api_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_price_subscription: str = ""   # the $29/mo Price id (price_…)
+    stripe_success_url: str = "http://localhost:8000/billing/success"
+    stripe_cancel_url: str = "http://localhost:8000/billing/cancel"
+    stripe_portal_return_url: str = "http://localhost:8000/"
 
     @property
     def cookie_secure(self) -> bool:
@@ -76,4 +83,10 @@ def get_settings() -> Settings:
         default_model=os.environ.get("SPHERE_DEFAULT_MODEL", "claude-sonnet-4-6"),
         reservation_ttl_seconds=int(os.environ.get("SPHERE_RESERVATION_TTL_SECONDS", "1800")),
         reclaim_interval_seconds=int(os.environ.get("SPHERE_RECLAIM_INTERVAL_SECONDS", "300")),
+        stripe_api_key=os.environ.get("STRIPE_API_KEY", ""),
+        stripe_webhook_secret=os.environ.get("STRIPE_WEBHOOK_SECRET", ""),
+        stripe_price_subscription=os.environ.get("STRIPE_PRICE_SUBSCRIPTION", ""),
+        stripe_success_url=os.environ.get("STRIPE_SUCCESS_URL", "http://localhost:8000/billing/success"),
+        stripe_cancel_url=os.environ.get("STRIPE_CANCEL_URL", "http://localhost:8000/billing/cancel"),
+        stripe_portal_return_url=os.environ.get("STRIPE_PORTAL_RETURN_URL", "http://localhost:8000/"),
     )

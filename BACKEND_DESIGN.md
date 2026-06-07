@@ -224,7 +224,7 @@ The **report-generation call** ([L4634](portal/index.html#L4634)) routes through
 
 ### 4.6 Stripe (money-in)
 
-- **Customer**: created during JIT provisioning.
+- **Customer**: created **lazily on first billing action** (`ensure_customer`, row-locked), not at signup — keeps auth/provisioning Stripe-free so sign-in works when Stripe is unconfigured. Linked to the user via `billing.stripe_customer_id`.
 - **Credit packs**: `POST /billing/checkout/pack {amount}` → Stripe **Checkout `payment` mode** session → redirect. Credits granted on `checkout.session.completed` webhook (not client redirect).
 - **Subscription**: `POST /billing/checkout/subscribe` → Checkout `subscription` mode. (Ship behind a flag; PAYG-first.)
 - **Manage**: `POST /billing/portal` → Stripe **Customer Portal** session (card/sub/invoices — zero custom UI).

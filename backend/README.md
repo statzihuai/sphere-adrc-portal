@@ -19,6 +19,7 @@ sphere_backend/
   usage/            reservation lifecycle: open → finalize/cancel + reclaim_stale
   proxy/            Anthropic SSE streamer + token capture
   api/agent.py      POST /v1/agent — the streaming proxy (the margin engine)
+  api/billing.py    Stripe: checkout (pack/subscribe), portal, balance, webhook
 tests/              pytest suite (pure-logic tests + /health)
 ```
 

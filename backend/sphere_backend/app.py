@@ -23,9 +23,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import __version__
-from .api import agent, auth, health
+from .api import agent, auth, billing, health
 from .auth.provider import build_workos_provider
 from .auth.jwt import build_jwks_client
+from .billing.stripe_client import build_stripe_client
 from .config import Settings, get_settings
 from .db import Base
 from .db.session import build_engine, build_sessionmaker
@@ -55,6 +56,7 @@ async def lifespan(app: FastAPI):
         if settings.anthropic_api_key
         else None
     )
+    app.state.stripe_client = build_stripe_client(settings)
 
     # Background reclaim sweep — the guarantee that orphaned holds are freed.
     reclaim_task = asyncio.create_task(
@@ -91,6 +93,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(agent.router)
+    app.include_router(billing.router)
     return app
 
 
