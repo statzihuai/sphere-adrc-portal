@@ -25,6 +25,7 @@ from .api import auth, health
 from .auth.provider import build_workos_provider
 from .auth.jwt import build_jwks_client
 from .config import Settings, get_settings
+from .db import Base
 from .db.session import build_engine, build_sessionmaker
 
 
@@ -34,6 +35,12 @@ async def lifespan(app: FastAPI):
     engine = build_engine(settings.database_url)
     app.state.engine = engine
     app.state.sessionmaker = build_sessionmaker(engine)
+
+    # Dev convenience: auto-create the SQLite schema so local runs are turnkey.
+    # Postgres owns its schema via Alembic migrations — never auto-created.
+    if engine.dialect.name == "sqlite":
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
     provider = build_workos_provider(settings)
     app.state.auth_provider = provider
