@@ -38,6 +38,15 @@ class Settings:
     # Async SQLAlchemy URL. SQLite default for local dev; Postgres in prod
     # (postgresql+asyncpg://…). Override with SPHERE_DATABASE_URL.
     database_url: str = "sqlite+aiosqlite:///./sphere.db"
+    # WorkOS AuthKit. Empty until configured → auth endpoints return 503.
+    workos_api_key: str = ""
+    workos_client_id: str = ""
+    workos_redirect_uri: str = "http://localhost:8000/auth/callback"
+
+    @property
+    def cookie_secure(self) -> bool:
+        """Mark cookies Secure outside local dev (so they work over http in tests)."""
+        return self.app_env != "development"
 
 
 @lru_cache
@@ -48,5 +57,10 @@ def get_settings() -> Settings:
         cors_origins=_csv_env("SPHERE_CORS_ORIGINS", _DEFAULT_CORS_ORIGINS),
         database_url=os.environ.get(
             "SPHERE_DATABASE_URL", "sqlite+aiosqlite:///./sphere.db"
+        ),
+        workos_api_key=os.environ.get("WORKOS_API_KEY", ""),
+        workos_client_id=os.environ.get("WORKOS_CLIENT_ID", ""),
+        workos_redirect_uri=os.environ.get(
+            "WORKOS_REDIRECT_URI", "http://localhost:8000/auth/callback"
         ),
     )

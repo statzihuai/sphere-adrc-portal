@@ -84,11 +84,15 @@ Stripe · WorkOS · CDN(+object store for data files)
 
 ```sql
 CREATE TABLE users (
-  id              BIGSERIAL PRIMARY KEY,
-  workos_user_id  TEXT UNIQUE NOT NULL,
+  id              BIGSERIAL PRIMARY KEY,   -- INTERNAL surrogate key only (sequential)
+  workos_user_id  TEXT UNIQUE NOT NULL,    -- the real identity; key all provisioning on this
   email           TEXT NOT NULL,
   created_at      TIMESTAMPTZ DEFAULT now()
 );
+-- NOTE: `users.id` is internal-only — it's used for foreign keys, never exposed
+-- publicly. Sequential ids are enumerable (leak user count / invite scraping),
+-- so any public-facing identifier must be the `workos_user_id` or a UUID, never
+-- this id. Don't put `users.id` in a public URL or API response.
 
 CREATE TABLE billing (
   user_id            BIGINT PRIMARY KEY REFERENCES users(id),
