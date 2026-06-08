@@ -2886,6 +2886,14 @@ window.addEventListener('load', () => {
   if (typeof _agentCaptureTokenFromHash === 'function' && _agentCaptureTokenFromHash()) {
     navTo('agent', null, 'sl-agent');
   }
+  // If we just returned from Stripe Checkout, go back to the agent and reflect
+  // the new balance (the webhook credits the wallet out-of-band).
+  const _co = new URLSearchParams(window.location.search).get('checkout');
+  if (_co) {
+    history.replaceState(null, '', window.location.pathname);
+    navTo('agent', null, 'sl-agent');
+    if (typeof _agentHandleCheckoutReturn === 'function') _agentHandleCheckoutReturn(_co);
+  }
 });
 
   // ══════════════════════════════════════════════════════════════════
@@ -3777,6 +3785,16 @@ function agentAddCredits() {
 
 function agentCloseCredits() {
   document.getElementById('agent-credits-overlay').style.display = 'none';
+}
+
+// Returning from Stripe Checkout. The wallet is credited by the webhook, which
+// can land a beat after the browser redirect — so poll the balance a few times.
+function _agentHandleCheckoutReturn(status) {
+  if (status !== 'success') return;   // 'cancel' → land on agent quietly
+  let tries = 0;
+  const tick = () => { _agentRefreshBalance(); if (++tries < 5) setTimeout(tick, 1500); };
+  tick();
+  if (typeof agentSetStatus === 'function') agentSetStatus('✓ Payment received — credits added to your wallet', 'ready');
 }
 
 async function agentBuyPack(amount) {
