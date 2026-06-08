@@ -46,6 +46,10 @@ class FakeProvider:
     def refresh(self, *, refresh_token: str) -> TokenPair:
         return self.refresh_result
 
+    def logout_url(self, *, session_id: str, return_to: str | None = None) -> str:
+        self.last_logout = (session_id, return_to)
+        return f"https://workos.test/logout?session_id={session_id}"
+
 
 class _SigningKey:
     def __init__(self, key):
@@ -132,6 +136,50 @@ def test_callback_rejects_bad_state(env):
     _login_then(client, provider)  # sets a real cookie
     resp = client.get("/auth/callback?code=abc&state=tampered")
     assert resp.status_code == 400
+
+
+# ── logout ───────────────────────────────────────────────────────────────────
+def test_logout_revokes_workos_session(env):
+    client, provider, _ = env
+    resp = client.get("/auth/logout?session_id=sess_1", follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers["location"] == "https://workos.test/logout?session_id=sess_1"
+    assert provider.last_logout[0] == "sess_1"
+
+
+def test_logout_without_session_redirects_locally(env):
+    client, *_ = env
+    resp = client.get("/auth/logout", follow_redirects=False)
+    assert resp.status_code == 302  # no session id → still log out client-side
+
+
+def test_callback_redirects_with_token_fragment_when_portal_configured(tmp_path, keypair):
+    # With portal_redirect_uri set, the callback hands tokens back to the SPA in
+    # the URL fragment via a 302 (instead of returning JSON).
+    from sphere_backend.config import Settings
+
+    priv, pub = keypair
+    db_path = tmp_path / "auth_redir.db"
+    sync_engine = create_engine(f"sqlite:///{db_path}")
+    Base.metadata.create_all(sync_engine)
+    sync_engine.dispose()
+    engine = build_engine(f"sqlite+aiosqlite:///{db_path}")
+    sessionmaker = build_sessionmaker(engine)
+    provider = FakeProvider()
+
+    app = create_app(Settings(app_env="test", portal_redirect_uri="https://portal.test/app"))
+    app.dependency_overrides[get_sessionmaker] = lambda: sessionmaker
+    app.dependency_overrides[get_auth_provider] = lambda: provider
+    app.dependency_overrides[get_jwks_client] = lambda: FakeJWKSClient(pub)
+    client = TestClient(app)
+
+    state = _login_then(client, provider)
+    resp = client.get(f"/auth/callback?code=abc&state={state}", follow_redirects=False)
+    assert resp.status_code == 302
+    loc = resp.headers["location"]
+    assert loc.startswith("https://portal.test/app#")
+    assert "access_token=acc_1" in loc
+    assert "refresh_token=ref_1" in loc
 
 
 # ── refresh (rotation) ───────────────────────────────────────────────────────

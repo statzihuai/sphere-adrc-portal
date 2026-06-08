@@ -42,6 +42,11 @@ class Settings:
     workos_api_key: str = ""
     workos_client_id: str = ""
     workos_redirect_uri: str = "http://localhost:8000/auth/callback"
+    # Where /auth/callback sends the browser after a successful login, with the
+    # token pair in the URL fragment (#access_token=…&refresh_token=…). Empty →
+    # the callback returns JSON instead (the default; used by tests and any
+    # non-browser caller). Set to the portal URL to enable the redirect handshake.
+    portal_redirect_uri: str = ""
     # Anthropic — SPHERE's centralized key (the margin engine). Empty → /v1/agent 503.
     anthropic_api_key: str = ""
     anthropic_base_url: str = "https://api.anthropic.com"
@@ -79,6 +84,7 @@ def get_settings() -> Settings:
         workos_redirect_uri=os.environ.get(
             "WORKOS_REDIRECT_URI", "http://localhost:8000/auth/callback"
         ),
+        portal_redirect_uri=os.environ.get("PORTAL_REDIRECT_URI", ""),
         anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
         anthropic_base_url=os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com"),
         default_model=os.environ.get("SPHERE_DEFAULT_MODEL", "claude-sonnet-4-6"),
