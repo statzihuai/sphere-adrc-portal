@@ -99,12 +99,18 @@ class RealStripeClient:
         return session["url"]
 
     def verify_webhook(self, *, payload: bytes, sig_header: str) -> Mapping[str, Any]:
+        import json
+
         import stripe
 
         try:
-            return stripe.Webhook.construct_event(payload, sig_header, self._webhook_secret)
+            stripe.Webhook.construct_event(payload, sig_header, self._webhook_secret)
         except Exception as exc:  # SignatureVerificationError / ValueError
             raise WebhookVerificationError(str(exc)) from exc
+        # Signature verified; parse the same bytes into a plain nested dict.
+        # (Stripe's Event object isn't dict-backed — its __getattr__ intercepts
+        # ``.get``, which would break handle_event.)
+        return json.loads(payload)
 
 
 def build_stripe_client(settings: Settings) -> RealStripeClient | None:
