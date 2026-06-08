@@ -52,6 +52,18 @@ def get_anthropic_streamer(request: Request):
     return streamer
 
 
+def get_stripe_client(request: Request):
+    client = getattr(request.app.state, "stripe_client", None)
+    if client is None:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Stripe not configured")
+    return client
+
+
+def get_app_settings(request: Request):
+    """The Settings the app was built with (test-overridable via create_app)."""
+    return request.app.state.settings
+
+
 async def current_user(
     authorization: str | None = Header(default=None),
     session: AsyncSession = Depends(get_session),

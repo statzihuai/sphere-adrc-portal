@@ -224,7 +224,7 @@ The **report-generation call** ([L4634](portal/index.html#L4634)) routes through
 
 ### 4.6 Stripe (money-in)
 
-- **Customer**: created during JIT provisioning.
+- **Customer**: created **lazily on first billing action** (`ensure_customer`, row-locked), not at signup — keeps auth/provisioning Stripe-free so sign-in works when Stripe is unconfigured. Linked to the user via `billing.stripe_customer_id`.
 - **Credit packs**: `POST /billing/checkout/pack {amount}` → Stripe **Checkout `payment` mode** session → redirect. Credits granted on `checkout.session.completed` webhook (not client redirect).
 - **Subscription**: `POST /billing/checkout/subscribe` → Checkout `subscription` mode. (Ship behind a flag; PAYG-first.)
 - **Manage**: `POST /billing/portal` → Stripe **Customer Portal** session (card/sub/invoices — zero custom UI).
@@ -232,7 +232,7 @@ The **report-generation call** ([L4634](portal/index.html#L4634)) routes through
   | Event | Action |
   |---|---|
   | `checkout.session.completed` (mode=payment) | grant pack credits |
-  | `invoice.payment_succeeded` | grant +$20 AI + allowances, set `sub_status=active`, `sub_period_end` |
+  | `invoice.payment_succeeded` | set `sub_status=active`, `sub_period_end`; grant +$20 AI **only** when `amount_paid > 0` and `billing_reason ∈ {subscription_create, subscription_cycle}` (skip $0 trials / prorations). Credit packs use `amount_subtotal` (pre-tax). Pin `stripe_api_version` so these shapes are stable. (Cell allowances out of scope for this portal.) |
   | `invoice.payment_failed` | `sub_status=past_due`, email, restrict after grace |
   | `customer.subscription.deleted` | `sub_status=canceled`, drop allowances |
 
