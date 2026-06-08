@@ -43,6 +43,7 @@ class AuthProvider(Protocol):
     def authorization_url(self, *, state: str) -> str: ...
     def exchange_code(self, *, code: str) -> AuthResult: ...
     def refresh(self, *, refresh_token: str) -> TokenPair: ...
+    def logout_url(self, *, session_id: str, return_to: str | None = None) -> str: ...
 
 
 class WorkOSAuthProvider:
@@ -75,6 +76,13 @@ class WorkOSAuthProvider:
             refresh_token=refresh_token
         )
         return TokenPair(access_token=resp.access_token, refresh_token=resp.refresh_token)
+
+    def logout_url(self, *, session_id: str, return_to: str | None = None) -> str:
+        # Revokes the WorkOS session and returns the URL to send the browser to;
+        # WorkOS clears the AuthKit cookie, then redirects to ``return_to``.
+        return self._client.user_management.get_logout_url(
+            session_id=session_id, return_to=return_to or None
+        )
 
 
 def build_workos_provider(settings: Settings) -> WorkOSAuthProvider | None:

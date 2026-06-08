@@ -836,6 +836,17 @@
   .agent-status-actions { display:flex; gap:.5rem; margin-left:auto; }
   .agent-status-actions button { background:none; border:1px solid var(--border); border-radius:6px; padding:.2rem .6rem; font-size:11.5px; color:var(--text-secondary); cursor:pointer; }
   .agent-status-actions button:hover { background:#f0f0f0; }
+  /* Add-credits modal */
+  .agent-credits-overlay { display:none; position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,.45); align-items:center; justify-content:center; }
+  .agent-credits-modal { background:#fff; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,.25); padding:1.75rem 2rem; width:380px; max-width:90vw; position:relative; }
+  .agent-credits-modal h3 { margin:0 0 .35rem; font-size:18px; color:var(--text-primary); }
+  .agent-credits-modal p { margin:0 0 1.25rem; font-size:13px; color:var(--text-secondary); }
+  .agent-credits-close { position:absolute; top:.75rem; right:1rem; background:none; border:none; font-size:22px; line-height:1; color:#999; cursor:pointer; }
+  .agent-credits-close:hover { color:#333; }
+  .agent-credits-packs { display:flex; gap:.75rem; }
+  .agent-credits-packs button { flex:1; padding:1rem .5rem; border:1.5px solid var(--border); border-radius:10px; background:#fafafa; cursor:pointer; font-size:20px; font-weight:700; color:var(--text-primary); transition:all .12s; }
+  .agent-credits-packs button:hover { border-color:var(--cardinal); background:#fff5f5; color:var(--cardinal); }
+  .agent-credits-status { margin-top:1rem; font-size:12.5px; color:var(--text-muted); min-height:1.2em; text-align:center; }
   .agent-messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:.75rem; padding:.25rem 0; min-height:0; }
   /* Prevent any child from shrinking — scroll the container instead */
   .agent-messages > * { flex-shrink:0; }
@@ -1492,6 +1503,7 @@
     <div id="tab-agent" class="tab-panel">
       <div class="agent-layout">
         <div class="agent-header">
+          <a class="agent-back-link" href="#" onclick="showTab('home');return false;" style="display:inline-block;margin-bottom:.5rem;">← Back to Portal</a>
           <h2>SPHERE AI Agent</h2>
           <p>Ask Claude to analyze SPHERE data. Python runs in your browser via Pyodide — no data leaves this page.</p>
         </div>
@@ -1499,13 +1511,12 @@
         <!-- Setup panel -->
         <div id="agent-setup-panel">
           <div class="agent-setup-card">
-            <h3>Connect your Claude API key</h3>
-            <p>You'll need a <a href="https://console.anthropic.com/" target="_blank" rel="noopener">Claude API key</a> from Anthropic. Costs are charged to your own account based on usage.</p>
+            <h3>Sign in to use the AI Agent</h3>
+            <p>Sign in to start analyzing SPHERE data with Claude. New accounts get <strong>$10 in free trial credits</strong> — no card required. After that, add credits to keep going.</p>
             <div class="agent-key-row">
-              <input type="text" id="agent-key-input" placeholder="sk-ant-api03-…" autocomplete="new-password" spellcheck="false" onkeydown="if(event.key==='Enter')agentConnect()">
-              <button class="agent-connect-btn" onclick="agentConnect()">Connect</button>
+              <button class="agent-connect-btn" id="agent-signin-btn" onclick="agentSignIn()">Sign in to use the AI Agent</button>
             </div>
-            <p class="agent-note">🔒 Your key is stored only in <code>sessionStorage</code> and never transmitted to Stanford servers. Cleared when you close the tab.</p>
+            <p class="agent-note">🔒 Your data never leaves this page — all Python runs locally in your browser via Pyodide. Only your question and results are sent to Claude through SPHERE's secure proxy.</p>
           </div>
         </div>
 
@@ -1516,7 +1527,7 @@
           <div id="agent-about-panel" class="agent-about-panel">
             <span style="font-size:15px">🔒</span>
             <div class="agent-about-body" style="font-size:13px;color:var(--text-secondary);">
-              Your API key is stored only in this browser session and never sent to Stanford servers. All Python computation runs locally via Pyodide (WebAssembly).
+              Your data never leaves this page — all Python computation runs locally in your browser via Pyodide (WebAssembly). Only your questions and the analysis results are sent to Claude, through SPHERE's secure proxy.
             </div>
             <button class="agent-about-close" onclick="agentToggleAbout()">×</button>
           </div>
@@ -1528,14 +1539,16 @@
             <span class="agent-status-dot ready" id="agent-status-dot">●</span>
             <span class="agent-status-text" id="agent-status-text">Ready</span>
             <select class="agent-model-select" id="agent-model-select" title="Model">
-              <option value="claude-opus-4-5">Opus — most capable</option>
-              <option value="claude-sonnet-4-5">Sonnet — balanced</option>
-              <option value="claude-haiku-4-5-20251001">Haiku — fastest</option>
+              <option value="claude-sonnet-4-6">Sonnet — balanced</option>
+              <option value="claude-opus-4-8">Opus — most capable</option>
+              <option value="claude-haiku-4-5">Haiku — fastest</option>
             </select>
             <div class="agent-status-actions">
+              <span id="agent-balance" class="agent-balance" title="Wallet balance" style="font-size:12px;font-weight:600;color:#175E54;padding:.2rem .5rem;"></span>
+              <button id="agent-add-credits-btn" onclick="agentAddCredits()" title="Add credits">＋ Add credits</button>
               <span id="agent-memory-badge" style="display:none;font-size:11px;color:#888;padding:.2rem .5rem;border:1px solid #ddd;border-radius:10px;cursor:pointer;" title="Clear memory" onclick="if(confirm('Clear all saved learnings?')){_agentClearLearnings();}"></span>
               <button onclick="agentReset()">↺ Reset</button>
-              <button onclick="agentDisconnect()">Disconnect</button>
+              <button onclick="agentDisconnect()">Sign out</button>
             </div>
           </div>
 
@@ -1584,6 +1597,21 @@
           </div>
 
         </div><!-- end agent-chat-panel -->
+
+        <!-- Add-credits modal -->
+        <div id="agent-credits-overlay" class="agent-credits-overlay" onclick="if(event.target===this)agentCloseCredits()">
+          <div class="agent-credits-modal">
+            <button class="agent-credits-close" onclick="agentCloseCredits()" title="Close">×</button>
+            <h3>Add credits</h3>
+            <p>Choose a credit pack — you'll be taken to Stripe to pay securely. Credits are added to your wallet right after payment.</p>
+            <div class="agent-credits-packs">
+              <button onclick="agentBuyPack('10')">$10</button>
+              <button onclick="agentBuyPack('25')">$25</button>
+              <button onclick="agentBuyPack('50')">$50</button>
+            </div>
+            <div id="agent-credits-status" class="agent-credits-status"></div>
+          </div>
+        </div>
       </div><!-- end agent-layout -->
     </div>
 
@@ -2853,10 +2881,10 @@ function renderDD(reset) {
 window.addEventListener('load', () => {
   setActiveSidebarLink('sl-home');
   if (document.getElementById('tab-availability').classList.contains('active')) renderChart();
-  // Pre-warm Pyodide in background if user has previously connected
-  // so the Python env is ready before they open the agent tab.
-  if (localStorage.getItem('agentKey')) {
-    setTimeout(() => { if (typeof agentEnsurePyodide === 'function') agentEnsurePyodide(); }, 2000);
+  // If we just returned from WorkOS sign-in, capture the tokens from the URL
+  // fragment and drop the user straight into the AI Agent tab.
+  if (typeof _agentCaptureTokenFromHash === 'function' && _agentCaptureTokenFromHash()) {
+    navTo('agent', null, 'sl-agent');
   }
 });
 
@@ -3391,7 +3419,7 @@ function renderMetrics(metrics, modalityKey = '') {
 // ═══════════════════════════════════════════════════════════════════
 // AI ANALYSIS AGENT — SPHERE AI style
 // ═══════════════════════════════════════════════════════════════════
-let _agentModel    = 'claude-opus-4-5';
+let _agentModel    = 'claude-sonnet-4-6';
 
 const AGENT_TOOLS = [
   {
@@ -3595,8 +3623,13 @@ function _agentInjectLearnings() {
 }
 
 // ── state ─────────────────────────────────────────────────────────
+// Backend base URL. Empty = same origin (the portal is served by the backend).
+// Set to e.g. 'https://api.sphere.example' if the portal is hosted separately.
+const SPHERE_API_BASE = '';
 let _agentPyodide    = null;
-let _agentKey        = null;
+let _agentToken      = null;   // WorkOS access token (JWT) — sent as Bearer
+let _agentRefresh    = null;   // WorkOS refresh token — for silent rotation
+let _agentBalance    = null;   // last known wallet balance (USD string)
 let _agentMessages   = [];
 let _agentLoaded     = new Set();
 let _agentPyReady    = false;
@@ -3613,8 +3646,153 @@ let _agentRunResult  = null; // {stdout, stderr, exit, figures[]}
 function agentTabOpened() {
   const sel = document.getElementById('agent-model-select');
   if (sel) sel.onchange = () => { _agentModel = sel.value; };
-  const saved = sessionStorage.getItem('agent_key');
-  if (saved) { _agentKey = saved; _agentShowChat(); agentEnsurePyodide(); }
+  const saved = sessionStorage.getItem('sphere_access_token');
+  if (saved) {
+    _agentToken   = saved;
+    _agentRefresh = sessionStorage.getItem('sphere_refresh_token');
+    _agentShowChat();
+    _agentStartRefreshTimer();
+    _agentRefreshBalance();
+    agentEnsurePyodide();
+  }
+}
+
+// Sign-in handshake (Phase 3): redirect to the backend's WorkOS login. After
+// auth, /auth/callback redirects back to the portal with the token pair in the
+// URL fragment, which _agentCaptureTokenFromHash() picks up on page load.
+function agentSignIn() {
+  window.location.href = SPHERE_API_BASE + '/auth/login';
+}
+
+// On page load, read tokens handed back in the URL fragment, persist them, and
+// strip the fragment from the address bar so the credentials don't linger.
+// Returns true if a token was captured.
+function _agentCaptureTokenFromHash() {
+  const hash = window.location.hash || '';
+  if (hash.indexOf('access_token=') === -1) return false;
+  const params = new URLSearchParams(hash.replace(/^#/, ''));
+  const access  = params.get('access_token');
+  const refresh = params.get('refresh_token');
+  if (!access) return false;
+  _agentToken = access;
+  sessionStorage.setItem('sphere_access_token', access);
+  if (refresh) {
+    _agentRefresh = refresh;
+    sessionStorage.setItem('sphere_refresh_token', refresh);
+  }
+  // Remove the fragment without adding a history entry.
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+  return true;
+}
+
+// ── token refresh ──────────────────────────────────────────────────
+// WorkOS access tokens are short-lived. Exchange the (rotating) refresh token
+// for a fresh pair. Returns true on success. Both tokens must be replaced —
+// WorkOS rotates the refresh token on every use.
+let _agentRefreshTimer = null;
+let _agentRefreshing = null;   // de-dupe concurrent refreshes
+async function _agentRefreshToken() {
+  if (!_agentRefresh) return false;
+  if (_agentRefreshing) return _agentRefreshing;   // share one in-flight refresh
+  _agentRefreshing = (async () => {
+    try {
+      const r = await fetch(SPHERE_API_BASE + '/auth/refresh', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ refresh_token: _agentRefresh })
+      });
+      if (!r.ok) return false;
+      const data = await r.json();
+      _agentToken   = data.access_token;
+      _agentRefresh = data.refresh_token;
+      sessionStorage.setItem('sphere_access_token', _agentToken);
+      sessionStorage.setItem('sphere_refresh_token', _agentRefresh);
+      return true;
+    } catch (_) { return false; }
+    finally { _agentRefreshing = null; }
+  })();
+  return _agentRefreshing;
+}
+
+// Authenticated fetch with one-shot refresh-and-retry on 401.
+async function _agentAuthedFetch(url, opts = {}) {
+  const build = () => ({ ...opts, headers: { ...(opts.headers || {}), 'Authorization': 'Bearer ' + _agentToken } });
+  let resp = await fetch(url, build());
+  if (resp.status === 401 && await _agentRefreshToken()) resp = await fetch(url, build());
+  return resp;
+}
+
+// POST to the metered proxy with the same refresh-and-retry, returning the raw
+// (streaming) Response for the caller to read. Shared by the chat loop and the
+// report generator.
+async function _agentProxyFetch(body, signal) {
+  const build = () => ({
+    method: 'POST', signal,
+    headers: { 'Authorization': 'Bearer ' + _agentToken, 'content-type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  let resp = await fetch(SPHERE_API_BASE + '/v1/agent', build());
+  if (resp.status === 401 && await _agentRefreshToken()) resp = await fetch(SPHERE_API_BASE + '/v1/agent', build());
+  return resp;
+}
+
+// Proactively rotate the token every few minutes so an open session never goes
+// stale mid-use; reactive refresh (above) still covers the gaps.
+function _agentStartRefreshTimer() {
+  if (_agentRefreshTimer) return;
+  _agentRefreshTimer = setInterval(() => { if (_agentToken) _agentRefreshToken(); }, 4 * 60 * 1000);
+}
+function _agentStopRefreshTimer() {
+  if (_agentRefreshTimer) { clearInterval(_agentRefreshTimer); _agentRefreshTimer = null; }
+}
+
+// Fetch the current wallet balance and reflect it in the status bar.
+async function _agentRefreshBalance() {
+  if (!_agentToken) return;
+  try {
+    const r = await _agentAuthedFetch(SPHERE_API_BASE + '/billing/balance');
+    if (r.ok) {
+      const data = await r.json();
+      _agentBalance = data.balance_usd;
+      _agentRenderBalance();
+    }
+  } catch (_) { /* non-fatal */ }
+}
+
+function _agentRenderBalance() {
+  const el = document.getElementById('agent-balance');
+  if (!el) return;
+  if (_agentBalance == null) { el.textContent = ''; return; }
+  el.textContent = '$' + Number(_agentBalance).toFixed(2);
+}
+
+// Open the credit-pack picker. Each pack creates a Stripe Checkout Session
+// server-side and redirects to Stripe's hosted page; on return the wallet is
+// credited via webhook and the balance refreshes.
+function agentAddCredits() {
+  if (!_agentToken) { agentSignIn(); return; }
+  document.getElementById('agent-credits-status').textContent = '';
+  document.getElementById('agent-credits-overlay').style.display = 'flex';
+}
+
+function agentCloseCredits() {
+  document.getElementById('agent-credits-overlay').style.display = 'none';
+}
+
+async function agentBuyPack(amount) {
+  const status = document.getElementById('agent-credits-status');
+  status.textContent = 'Redirecting to Stripe…';
+  try {
+    const r = await _agentAuthedFetch(SPHERE_API_BASE + '/billing/checkout/pack', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ amount_usd: amount })
+    });
+    if (r.ok) { window.location.href = (await r.json()).url; }
+    else if (r.status === 503) { status.textContent = 'Payments aren\'t configured on this server yet.'; }
+    else if (r.status === 401) { status.textContent = 'Your session expired — please sign in again.'; }
+    else { status.textContent = 'Could not start checkout (' + r.status + ').'; }
+  } catch (e) { status.textContent = 'Checkout failed: ' + e.message; }
 }
 
 function agentToggleAbout() {
@@ -3623,26 +3801,30 @@ function agentToggleAbout() {
   document.getElementById('agent-about-chip').style.display  = _agentAboutOpen ? 'none' : '';
 }
 
-async function agentConnect() {
-  const key = document.getElementById('agent-key-input').value.trim();
-  if (!key.startsWith('sk-ant-')) { alert('Invalid API key — should start with sk-ant-'); return; }
-  _agentKey = key;
-  sessionStorage.setItem('agent_key', key);
-  _agentShowChat();
-  await agentEnsurePyodide();
+// Decode a claim from a JWT payload (no verification — display/routing only).
+function _agentJwtClaim(token, claim) {
+  if (!token) return null;
+  try {
+    const part = token.split('.')[1];
+    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(json)[claim] || null;
+  } catch (_) { return null; }
 }
 
 function agentDisconnect() {
-  _agentKey = null;
-  sessionStorage.removeItem('agent_key');
-  document.getElementById('agent-setup-panel').style.display = '';
-  document.getElementById('agent-chat-panel').style.display = 'none';
-  document.getElementById('agent-key-input').value = '';
-  // Restore full layout
-  const layout = document.querySelector('.agent-layout');
-  if (layout) layout.classList.remove('connected');
-  const header = document.querySelector('.agent-header');
-  if (header) header.style.display = '';
+  // Grab the session id before clearing, so we can revoke the WorkOS session.
+  const sid = _agentJwtClaim(_agentToken, 'sid');
+  _agentStopRefreshTimer();
+  _agentToken = null;
+  _agentRefresh = null;
+  _agentBalance = null;
+  sessionStorage.removeItem('sphere_access_token');
+  sessionStorage.removeItem('sphere_refresh_token');
+  // Full logout: end the WorkOS session too, so the next sign-in actually
+  // prompts (a local-only clear would silently re-auth the same account, which
+  // is wrong on shared machines). WorkOS redirects back to the portal.
+  window.location.href =
+    SPHERE_API_BASE + '/auth/logout' + (sid ? ('?session_id=' + encodeURIComponent(sid)) : '');
 }
 
 function agentReset() {
@@ -4054,7 +4236,7 @@ function agentPrompt(text) {
 }
 
 async function agentSend() {
-  if (_agentBusy || !_agentKey) return;
+  if (_agentBusy || !_agentToken) return;
   const input = document.getElementById('agent-input');
   const text = input.value.trim();
   if (!text) return;
@@ -4122,28 +4304,48 @@ function _agentCachedMessages() {
 // Makes one API call with stream:true. Streams text tokens to the DOM
 // with a 20ms flush interval so words appear progressively.
 // Returns { content: [...blocks], stop_reason } when the message is done.
+// Typed errors so agentLoop can branch on billing/auth failures from the proxy.
+class _AgentInsufficientCredits extends Error { constructor() { super('insufficient_credits'); this.name = 'InsufficientCredits'; } }
+class _AgentUnauthorized       extends Error { constructor() { super('unauthorized'); this.name = 'Unauthorized'; } }
+
+// Read a streamed /v1/agent response and return the concatenated assistant text
+// (used by the non-interactive report generator). Also absorbs the trailing
+// sphere_balance event to keep the wallet display current.
+async function _agentReadStreamText(resp) {
+  const reader = resp.body.getReader();
+  const dec = new TextDecoder();
+  let out = '', rawBuf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    rawBuf += dec.decode(value, { stream: true });
+    const lines = rawBuf.split('\n');
+    rawBuf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6).trim();
+      if (payload === '[DONE]') return out;
+      let ev; try { ev = JSON.parse(payload); } catch { continue; }
+      if (ev.balance_usd !== undefined) { _agentBalance = ev.balance_usd; _agentRenderBalance(); continue; }
+      if (ev.type === 'content_block_delta' && ev.delta && ev.delta.type === 'text_delta') out += ev.delta.text;
+    }
+  }
+  return out;
+}
+
 async function _agentStreamCall() {
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    signal: _agentAbort.signal,
-    headers: {
-      'x-api-key': _agentKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'anthropic-dangerous-direct-browser-access': 'true',
-      'anthropic-beta': 'prompt-caching-2024-07-31'
-    },
-    body: JSON.stringify({
-      model: _agentModel,
-      max_tokens: 8192,
-      stream: true,
-      system: [{ type: 'text', text: AGENT_SYSTEM, cache_control: { type: 'ephemeral' } }],
-      tools: _agentCachedTools(),
-      messages: _agentCachedMessages()
-    })
-  });
+  const resp = await _agentProxyFetch({
+    model: _agentModel,
+    max_tokens: 8192,
+    stream: true,
+    system: [{ type: 'text', text: AGENT_SYSTEM, cache_control: { type: 'ephemeral' } }],
+    tools: _agentCachedTools(),
+    messages: _agentCachedMessages()
+  }, _agentAbort.signal);
 
   if (!resp.ok) {
+    if (resp.status === 402) throw new _AgentInsufficientCredits();
+    if (resp.status === 401) throw new _AgentUnauthorized();
     const err = await resp.json().catch(() => ({}));
     throw new Error('API error ' + resp.status + ': ' + (err.error?.message || resp.statusText));
   }
@@ -4207,6 +4409,13 @@ async function _agentStreamCall() {
       if (payload === '[DONE]') break outer;
       let ev;
       try { ev = JSON.parse(payload); } catch { continue; }
+
+      // Trailing wallet balance from the SPHERE proxy (event: sphere_balance).
+      if (ev.balance_usd !== undefined) {
+        _agentBalance = ev.balance_usd;
+        _agentRenderBalance();
+        continue;
+      }
 
       if (ev.type === 'content_block_start') {
         const b = ev.content_block;
@@ -4341,8 +4550,18 @@ async function agentLoop() {
   } catch(e) {
     const thinking = document.getElementById('agent-thinking');
     if (thinking) thinking.remove();
-    if (e.name !== 'AbortError') agentAppendMessage('assistant', '⚠️ Error: ' + e.message);
-    else agentAppendMessage('assistant', '⏹ Stopped.');
+    if (e.name === 'InsufficientCredits') {
+      _agentBalance = '0';
+      _agentRenderBalance();
+      agentAppendMessage('assistant', '💳 You\'re out of credits. Click **＋ Add credits** in the toolbar to top up and continue.');
+    } else if (e.name === 'Unauthorized') {
+      agentAppendMessage('assistant', '🔒 Your session expired. Please sign in again.');
+      agentDisconnect();
+    } else if (e.name !== 'AbortError') {
+      agentAppendMessage('assistant', '⚠️ Error: ' + e.message);
+    } else {
+      agentAppendMessage('assistant', '⏹ Stopped.');
+    }
     agentAppendTurnBreak();
   }
 
@@ -4571,7 +4790,7 @@ function _reportHideOverlay() { agentSetStatus('Ready', 'ready'); }
 
 // ── save report ────────────────────────────────────────────────────
 async function agentSaveReport() {
-  if (!_agentKey || _agentMessages.length < 2) {
+  if (!_agentToken || _agentMessages.length < 2) {
     alert('No analysis to report yet. Run an analysis first.');
     return;
   }
@@ -4631,26 +4850,18 @@ Note which datasets are complete vs. portal subsets (scRNAseq: 21 marker genes o
 
 Write in third person, past tense. Be concise and precise. Use real numbers from the analysis — do not be vague.` }
     ];
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': _agentKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: _agentModel,
-        max_tokens: 1800,
-        messages: summaryMessages
-      })
+    // stream:true is required — the SPHERE proxy meters usage from the SSE
+    // stream, so a non-streamed response would settle at $0.
+    const resp = await _agentProxyFetch({
+      model: _agentModel,
+      max_tokens: 1800,
+      stream: true,
+      messages: summaryMessages
     });
-    if (resp.ok) {
-      const data = await resp.json();
-      narrative = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    if (resp.ok && resp.body) {
+      narrative = await _agentReadStreamText(resp);
     } else {
-      const err = await resp.json().catch(() => ({}));
-      console.error('Report summary API error:', resp.status, err);
+      console.error('Report summary API error:', resp.status);
     }
   } catch(e) { console.error('Report summary fetch failed:', e); }
   _reportStepDone(1);

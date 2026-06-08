@@ -18,9 +18,11 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from . import __version__
 from .api import agent, auth, billing, health
@@ -94,6 +96,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router)
     app.include_router(agent.router)
     app.include_router(billing.router)
+
+    # Dev/single-origin convenience: serve the static portal at "/" so the
+    # browser, API, and WorkOS redirect all share one origin (no CORS, cookies
+    # work). Mounted last so the API routes above take precedence. In prod the
+    # portal is hosted separately (Stanford AFS) and this directory is absent,
+    # so the mount is simply skipped.
+    portal_dir = Path(__file__).resolve().parents[2] / "portal"
+    if portal_dir.is_dir():
+        app.mount("/", StaticFiles(directory=str(portal_dir), html=True), name="portal")
+
     return app
 
 
