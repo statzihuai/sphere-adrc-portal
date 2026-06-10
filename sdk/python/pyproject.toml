@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sphere"
+version = "0.1.0"
+description = "SPHERE — metered AI gateway client. Bring a sphere_sk_ key, call models, pay per token."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/jiashuoz/sphere-adrc-portal"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sphere"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
