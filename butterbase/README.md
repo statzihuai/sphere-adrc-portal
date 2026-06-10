@@ -28,3 +28,17 @@ account) and is accepted; the plaintext key never exists server-side, only `key_
 | Script | Gate | Needs |
 |---|---|---|
 | `gate1_schema.sh` | §7.1 schema + RLS fail-closed | nothing (anon probes) |
+| `gate2_keys.sh` | §7.2 key lifecycle | `SPHERE_TEST_EMAIL`, `SPHERE_TEST_PASSWORD` |
+| `gate4_gateway.sh` | §7.2 revoked-key, §7.4 metering, §5 negative paths, §8-Q2 bearer smoke | `SPHERE_KEY` (+ optional `SPHERE_REVOKED_KEY`) |
+
+## Owner key (fn:gateway upstream)
+
+`fn:gateway` calls the app-scoped AI gateway with `OWNER_GATEWAY_KEY` from its encrypted env.
+Deployed with a placeholder — set the real key (mint with `scopes: ["ai:gateway"]` via
+`POST /api-keys` with a dashboard JWT, per least-privilege §8 Q2) without redeploying:
+
+    manage_function { action: "update_env", function_name: "gateway",
+                      env: { OWNER_GATEWAY_KEY: "bb_sk_..." } }
+
+Until then the happy path returns the upstream 401 passthrough and fully refunds the reserve
+(verified); all other gateway behavior is live.
