@@ -1,0 +1,19 @@
+{
+  "name": "@sphere/sdk",
+  "version": "0.1.0",
+  "description": "SPHERE — metered AI gateway client. Bring a sphere_sk_ key, call models, pay per token.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": "./dist/index.js" },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test \"test/*.test.mjs\""
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}
