@@ -134,8 +134,8 @@ rows to `user_id`. `manage_schema` payload:
     },
     "trial_grants": {
       "columns": {
-        "email": { "type": "text", "primary": true },
-        "user_id": { "type": "uuid", "nullable": false },
+        "user_id": { "type": "uuid", "primary": true },
+        "email": { "type": "text" },
         "granted_at": { "type": "timestamptz", "default": "now()" }
       }
     }
@@ -146,12 +146,18 @@ rows to `user_id`. `manage_schema` payload:
 
 `usage_log` deliberately mirrors the production `v1_resume_matching_usage` shape (api_key_id, model,
 tokens, cost, elapsed) so partner-billing queries port over. `credit_orders.stripe_session_id UNIQUE`
-is the idempotency guard for webhook replays. `trial_grants` (PK = lowercased email) makes the $10
-one-per-email trial a database constraint — both grant paths (§8 Q5) `INSERT … ON CONFLICT DO NOTHING`.
+is the idempotency guard for webhook replays. `trial_grants` (PK = `user_id`) makes the $10 trial a
+database constraint — both grant paths (§8 Q5) `INSERT … ON CONFLICT DO NOTHING`. *Implementation
+amendment:* the trial is keyed by `user_id` rather than email — Butterbase end users are 1:1 with a
+verified email per app, so the one-per-email rule is preserved, and it lets `fn:gateway` (which knows
+only `user_id`) run the lazy backstop; `email` is kept as a nullable audit column filled by the hook.
 
-RLS: `enable_rls` on all five tables with **no anon/user policies** — the auto-created service bypass
-lets functions (which run as `butterbase_service`, see §8 Q1) operate while the public REST data API
-sees nothing.
+RLS (*amended at implementation*): `enable_rls` with **no anon/user policies** on `wallets`,
+`usage_log`, `credit_orders`, `trial_grants` — service-only; the auto-created service bypass lets
+functions operate while the public REST data API sees nothing. `api_keys` instead gets
+`create_user_isolation` on `user_id`, because `fn:keys` runs with the end-user JWT (`butterbase_user`
+role, RLS enforced) — users manage exactly their own key rows. Consequence: the lazy trial backstop
+lives in `fn:gateway` (service role), not `fn:keys` (§8 Q5 note).
 
 ### 4.3 API keys — issuance & validation (headline feature #1)
 
@@ -237,8 +243,8 @@ Public URL: `POST https://api.butterbase.ai/v1/app_21ze8d0ep28o/fn/gateway`. Thi
   ```
   The handler first acks retries via `ctx.idempotency.claim(event.id, { scope: "stripe" })`; the UNIQUE
   constraint stays as the last-line guard.
-- **Trial:** post-auth hook grants the `$10` one-per-email credit eagerly; `fn:keys` repeats it lazily as
-  the backstop (hook is fire-and-forget — §8 Q5). Idempotent via `trial_grants` PK.
+- **Trial:** post-auth hook grants the `$10` one-per-email credit eagerly; `fn:gateway` repeats it lazily
+  as the backstop (hook is fire-and-forget — §8 Q5). Idempotent via `trial_grants` PK (`user_id`).
 
 ### 4.7 The `sphere` SDK (headline feature #2 — the product surface)
 
@@ -367,10 +373,12 @@ Per-slice gates (the build is sliced exactly as §4.2–4.7), each verified befo
    (`manage_auth_config configure_auth_hook`) fires on every OAuth login / email login / signup with
    `{ user: { id, email }, isNewUser }` and runs as `butterbase_service` — but it is explicitly
    **fire-and-forget** (no delivery guarantee, no retry). So: the hook function grants the trial
-   eagerly for instant UX, and `fn:keys` (POST, the first authenticated thing every user must do)
-   repeats the grant lazily as the reliability backstop. Both paths are idempotent via a new
-   `trial_grants` table (§4.2) with `UNIQUE(email)` + `ON CONFLICT DO NOTHING` — the one-per-email rule
-   is the constraint itself, not application logic.
+   eagerly for instant UX, and `fn:gateway` repeats the grant lazily as the reliability backstop
+   (*amended at implementation:* the backstop sits in `fn:gateway`, not `fn:keys` — `fn:keys` runs as
+   `butterbase_user` and cannot write `wallets`; `fn:gateway` runs as service and has a verified
+   `user_id` from the key lookup). Both paths are idempotent via the `trial_grants` table (§4.2,
+   PK = `user_id`) + `ON CONFLICT DO NOTHING` — one-per-account is the constraint itself, and
+   accounts are 1:1 with verified emails.
 
 6. **Key prefix — RESOLVED: `sphere_sk_` stands.** Checked conventions in play: AgentDrive production
    uses `ad_live_` (12-char display prefix); Butterbase platform keys use `bb_sk_`; nothing in this repo
