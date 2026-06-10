@@ -29,7 +29,10 @@ account) and is accepted; the plaintext key never exists server-side, only `key_
 |---|---|---|
 | `gate1_schema.sh` | §7.1 schema + RLS fail-closed | nothing (anon probes) |
 | `gate2_keys.sh` | §7.2 key lifecycle | `SPHERE_TEST_EMAIL`, `SPHERE_TEST_PASSWORD` |
+| `gate3_concurrency.py` | §7.3 wallet invariant under concurrency | `SPHERE_TEST_EMAIL2`, `SPHERE_TEST_PASSWORD` |
 | `gate4_gateway.sh` | §7.2 revoked-key, §7.4 metering, §5 negative paths, §8-Q2 bearer smoke | `SPHERE_KEY` (+ optional `SPHERE_REVOKED_KEY`) |
+
+Results and the head-to-head comparison live in [`PARITY.md`](./PARITY.md).
 
 ## Owner key (fn:gateway upstream)
 
