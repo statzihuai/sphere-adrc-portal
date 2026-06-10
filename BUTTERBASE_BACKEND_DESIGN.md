@@ -233,16 +233,24 @@ Public URL: `POST https://api.butterbase.ai/v1/app_21ze8d0ep28o/fn/gateway`. Thi
 
 ### 4.6 Credits — money-in (Stripe Connect)
 
-- **Define product** once (developer auth): `POST /v1/{app}/billing/products` — e.g. `"$10 credit pack" → 10_000_000` micro-cents.
-- **User buys** (end-user JWT): `POST /v1/{app}/billing/purchase` → returns Stripe Checkout URL.
-- **`fn:stripe-webhook`** on `POST /webhooks/stripe/connect`: on `checkout.session.completed`, idempotently
-  (insert `credit_orders` with `UNIQUE stripe_session_id`) credit the wallet:
+- **Define product** once (developer auth): `POST /v1/{app}/billing/products` — e.g. `"$10 credit pack"`,
+  `priceCents: 1000`, `metadata: { credit_microcents: 10000000 }`. Requires Stripe **Connect onboarding**
+  first (`POST /v1/{app}/billing/connect/onboard` → seller completes in Stripe).
+- **User buys** (end-user JWT): `POST /v1/{app}/billing/purchase` → returns Stripe Checkout URL + `orderId`.
+- **`fn:credits-claim`** (*amended at implementation — replaces `fn:stripe-webhook`*): Butterbase consumes
+  the Stripe Connect webhooks itself and exposes the result as order status (`pending → paid`). We never
+  receive the webhook, so crediting is **claim-based**: the success page / SDK calls
+  `GET …/fn/credits-claim?order_id=` with the user's JWT; the function re-fetches the order **with the
+  caller's own JWT** (platform scopes orders to the signed-in user — nobody can claim someone else's
+  order), requires `status == "paid"`, then credits exactly once:
   ```sql
-  INSERT INTO credit_orders (...) ON CONFLICT (stripe_session_id) DO NOTHING;   -- replay guard
+  INSERT INTO credit_orders (...) ON CONFLICT (stripe_session_id) DO NOTHING RETURNING id; -- order id, claim-replay guard
+  -- only the inserting request proceeds to:
   UPDATE wallets SET balance_microcents = balance_microcents + $amt WHERE user_id = $uid;
   ```
-  The handler first acks retries via `ctx.idempotency.claim(event.id, { scope: "stripe" })`; the UNIQUE
-  constraint stays as the last-line guard.
+  Trade-off vs. webhooks: a paid-but-never-claimed order sits uncredited until the user next loads the
+  billing page (which claims all paid orders). Acceptable for the spike; a cron reconciler is the
+  follow-up if it ever matters.
 - **Trial:** post-auth hook grants the `$10` one-per-email credit eagerly; `fn:gateway` repeats it lazily
   as the backstop (hook is fire-and-forget — §8 Q5). Idempotent via `trial_grants` PK (`user_id`).
 
