@@ -32,4 +32,10 @@ code=$(curl -sS -o /dev/null -w "%{http_code}" -X DELETE "$KEYS?id=$KID" -H "Aut
 code=$(curl -sS -o /dev/null -w "%{http_code}" -X DELETE "$KEYS?id=$KID" -H "Authorization: Bearer $TOK")
 [ "$code" = 404 ] && echo "ok: double-revoke -> 404" || { echo "FAIL: double-revoke -> $code"; exit 1; }
 
+# malformed id must be a clean 400 with no leaked internals (review F3 regression)
+resp=$(curl -sS -w "\n%{http_code}" -X DELETE "$KEYS?id=not-a-uuid" -H "Authorization: Bearer $TOK")
+code=$(echo "$resp" | tail -1); body=$(echo "$resp" | head -1)
+[ "$code" = 400 ] && echo "ok: non-uuid id -> 400" || { echo "FAIL: non-uuid id -> $code"; exit 1; }
+echo "$body" | grep -qi 'stack\|PostgresError' && { echo "FAIL: internals leaked: $body"; exit 1; } || echo "ok: no stack trace leaked"
+
 echo "gate 2 PASS"

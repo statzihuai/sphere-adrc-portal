@@ -31,13 +31,19 @@ expect "unknown model"   404 "$(curl -sS -o /dev/null -w '%{http_code}' -X POST 
 expect "oversized 402"   402 "$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$FN/gateway" -H "Authorization: Bearer $SPHERE_KEY" -H 'Content-Type: application/json' -d '{"model":"anthropic/claude-opus-4.7-fast","messages":[{"role":"user","content":"hi"}],"max_tokens":100000}')"
 
 # happy path + metering accuracy (§7.4) — only meaningful with a real owner key
-resp=$(curl -sS -X POST "$FN/gateway" -H "Authorization: Bearer $SPHERE_KEY" -H 'Content-Type: application/json' \
+hp=$(curl -sS -w "\n%{http_code}" -X POST "$FN/gateway" -H "Authorization: Bearer $SPHERE_KEY" -H 'Content-Type: application/json' \
   -d '{"model":"anthropic/claude-3-haiku","messages":[{"role":"user","content":"Reply with exactly: pong"}],"max_tokens":16}')
+hcode=$(echo "$hp" | tail -1); resp=$(echo "$hp" | sed '$d')
 code=$(echo "$resp" | python3 -c 'import json,sys
 d=json.load(sys.stdin)
 print("200" if "usage" in d else "err")')
 if [ "$code" != 200 ]; then
-  echo "skip: metering check (upstream not configured yet — OWNER_GATEWAY_KEY placeholder?)"
+  # Owner key unset: must surface as OUR 502 upstream_misconfigured, never the
+  # caller's 401 (review F2 regression — SDKs must raise APIError, not InvalidKey).
+  ecode=$(echo "$resp" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("error",{}).get("code",""))')
+  { [ "$hcode" = 502 ] && [ "$ecode" = "upstream_misconfigured" ]; } \
+    && echo "ok: unset owner key -> 502 upstream_misconfigured" \
+    || { echo "FAIL: unset owner key -> HTTP $hcode code=$ecode"; exit 1; }
   B1=$(curl -sS "$FN/balance" -H "Authorization: Bearer $SPHERE_KEY" | python3 -c 'import json,sys;print(json.load(sys.stdin)["balance_microcents"])')
   [ "$B1" = "$B0" ] && echo "ok: failed upstream call fully refunded (balance unchanged)" || { echo "FAIL: refund invariant broken: $B0 -> $B1"; exit 1; }
   echo "gateway gates PASS (metering pending owner key)"

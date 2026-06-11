@@ -4,7 +4,8 @@
 // ourselves via sphere_sk_ keys (Authorization: Bearer, x-sphere-key fallback).
 //
 // Money flow per request (§4.4): reserve worst-case -> upstream -> settle actual.
-// Invariant: balance never goes negative — the guard is in the UPDATE's WHERE.
+// Invariant: balance never goes negative — the guard is in the UPDATE's WHERE,
+// and every post-reserve path resolves the reserve exactly once.
 
 const MICRO_PER_USD = 1_000_000; // §4.2: integer micro-cents, 1e-6 USD
 const TRIAL_MICRO = 10_000_000;  // $10 one-per-account trial (§8 Q5)
@@ -41,22 +42,28 @@ async function prices(apiUrl: string) {
 const costMicro = (tokens: number, perM: number) => Math.ceil((tokens * perM) / 1_000_000);
 
 // Lazy trial backstop (§8 Q5): the post-auth hook grants eagerly, but it is
-// fire-and-forget, so the first gateway call repairs a missed grant. Both
-// paths race-safe via ON CONFLICT; trial_grants PK = one trial per account.
+// fire-and-forget, so the first gateway call repairs a missed grant. Claim and
+// credit happen in ONE statement (one transaction), so a crash can never burn
+// the grant without funding the wallet; the additive ON CONFLICT makes the
+// claim winner's $10 land even if a concurrent loser created the row first.
 async function ensureWallet(db: any, userId: string) {
   const w = await db.query(`SELECT 1 FROM wallets WHERE user_id = $1`, [userId]);
   if (w.rows.length) return;
-  const claimed = await db.query(
-    `INSERT INTO trial_grants (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING RETURNING user_id`,
-    [userId],
-  );
   await db.query(
-    `INSERT INTO wallets (user_id, balance_microcents) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING`,
-    [userId, claimed.rows.length ? TRIAL_MICRO : 0],
+    `WITH claim AS (
+       INSERT INTO trial_grants (user_id) VALUES ($1)
+       ON CONFLICT (user_id) DO NOTHING RETURNING 1
+     )
+     INSERT INTO wallets (user_id, balance_microcents)
+     SELECT $1, CASE WHEN EXISTS (SELECT 1 FROM claim) THEN $2::bigint ELSE 0 END
+     ON CONFLICT (user_id) DO UPDATE
+       SET balance_microcents = wallets.balance_microcents + EXCLUDED.balance_microcents,
+           updated_at = now()`,
+    [userId, TRIAL_MICRO],
   );
 }
 
-export async function handler(req: Request, ctx: any): Promise<Response> {
+async function handle(req: Request, ctx: any): Promise<Response> {
   const t0 = Date.now();
   if (req.method !== "POST") return err(405, "invalid_request_error", "method_not_allowed");
 
@@ -96,13 +103,17 @@ export async function handler(req: Request, ctx: any): Promise<Response> {
   );
   if (!reserved.rows.length) return err(402, "billing_error", "insufficient_credits");
 
+  // ---- reserve is held: nothing below may throw without resolving it. ----
+  // GREATEST floors the wallet at 0 for the rare settle where actual > reserve
+  // (input under-estimate); usage_log still records the true cost.
   const refund = (amt: number) =>
     ctx.db.query(
-      `UPDATE wallets SET balance_microcents = balance_microcents + $1, updated_at = now() WHERE user_id = $2`,
+      `UPDATE wallets SET balance_microcents = GREATEST(balance_microcents + $1, 0), updated_at = now()
+        WHERE user_id = $2`,
       [amt, userId],
     );
 
-  let up: Response, out: any;
+  let up: Response | null = null, out: any = null;
   try {
     up = await fetch(`${ctx.env.BUTTERBASE_API_URL}/v1/${ctx.env.BUTTERBASE_APP_ID}/chat/completions`, {
       method: "POST",
@@ -111,8 +122,19 @@ export async function handler(req: Request, ctx: any): Promise<Response> {
     });
     out = await up.json();
   } catch {
+    up = null;
+  }
+
+  if (!up) {
     await refund(reserve); // upstream unreachable: full reclaim, no usage_log (§5)
     return err(502, "api_error", "upstream_unreachable");
+  }
+  if (up.status === 401 || up.status === 403) {
+    // Owner-key failure is OUR misconfiguration — never surface it as the
+    // caller's 401, or SDKs would raise InvalidKeyError at a paying customer.
+    await refund(reserve);
+    console.error("upstream auth failed — OWNER_GATEWAY_KEY misconfigured or revoked");
+    return err(502, "api_error", "upstream_misconfigured", "gateway upstream auth failed (operator issue, not your key)");
   }
   if (!up.ok || !out?.usage) {
     await refund(reserve); // upstream error: full reclaim, pass the error through (§5)
@@ -122,14 +144,33 @@ export async function handler(req: Request, ctx: any): Promise<Response> {
   const inTok = out.usage.prompt_tokens ?? 0;
   const outTok = out.usage.completion_tokens ?? 0;
   const actual = costMicro(inTok, price.inM) + costMicro(outTok, price.outM);
-  await refund(reserve - actual); // settle (can only be negative if upstream ignored max_tokens)
-  await ctx.db.query(
-    `INSERT INTO usage_log (api_key_id, user_id, model, input_tokens, output_tokens, cost_microcents, elapsed_ms)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [keyId, userId, body.model, inTok, outTok, actual, Date.now() - t0],
-  );
-  await ctx.db.query(`UPDATE api_keys SET last_used_at = now() WHERE id = $1`, [keyId]);
+  if (actual > reserve) console.warn(`settle exceeded reserve by ${actual - reserve} micro (uid=${userId})`);
+  try {
+    await refund(reserve - actual); // settle
+  } catch (e) {
+    try { await refund(reserve - actual); } // one retry; then fail toward over-debit, never overdraft
+    catch (e2) { console.error(`settle failed twice — user ${userId} over-debited by ${reserve - actual}:`, e2); }
+  }
+  try {
+    await ctx.db.query(
+      `INSERT INTO usage_log (api_key_id, user_id, model, input_tokens, output_tokens, cost_microcents, elapsed_ms)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [keyId, userId, body.model, inTok, outTok, actual, Date.now() - t0],
+    );
+    await ctx.db.query(`UPDATE api_keys SET last_used_at = now() WHERE id = $1`, [keyId]);
+  } catch (e) {
+    console.error("usage_log write failed (money already settled):", e);
+  }
   return json(200, out); // pass body through unchanged (OpenAI shape)
+}
+
+export async function handler(req: Request, ctx: any): Promise<Response> {
+  try {
+    return await handle(req, ctx);
+  } catch (e) {
+    console.error("unhandled gateway error:", e);
+    return err(500, "api_error", "internal_error"); // never leak stack traces
+  }
 }
 
 export default handler;

@@ -23,7 +23,7 @@ const json = (status: number, body: unknown) =>
 const err = (status: number, type: string, code: string, message = code) =>
   json(status, { error: { type, code, message } });
 
-export async function handler(req: Request, ctx: any): Promise<Response> {
+async function handle(req: Request, ctx: any): Promise<Response> {
   if (req.method !== "GET") return err(405, "invalid_request_error", "method_not_allowed");
   const auth = req.headers.get("authorization") ?? "";
   if (!auth.startsWith("Bearer ")) return err(401, "authentication_error", "missing_credentials");
@@ -46,6 +46,15 @@ export async function handler(req: Request, ctx: any): Promise<Response> {
   if (!oRes.ok) return err(502, "api_error", "orders_unavailable");
   const order = await oRes.json();
   const o = order.order ?? order;
+
+  // Defense in depth: the platform is expected to scope /billing/orders to the
+  // JWT's user (verify at gate 5!), but if the order payload names an owner,
+  // enforce the match ourselves — a mismatched claim must never credit.
+  const orderUser = o.user_id ?? o.userId ?? o.customer_user_id ?? o.user?.id ?? null;
+  if (orderUser && String(orderUser) !== String(userId)) {
+    return err(403, "permission_error", "order_ownership_mismatch");
+  }
+
   if (o.status !== "paid") {
     return json(200, { credited: false, reason: `order_${o.status ?? "unknown"}` });
   }
@@ -80,6 +89,15 @@ export async function handler(req: Request, ctx: any): Promise<Response> {
     amount_microcents: amount,
     balance_microcents: Number(bal.rows[0]?.balance_microcents ?? 0),
   });
+}
+
+export async function handler(req: Request, ctx: any): Promise<Response> {
+  try {
+    return await handle(req, ctx);
+  } catch (e) {
+    console.error("unhandled credits-claim error:", e);
+    return err(500, "api_error", "internal_error"); // never leak stack traces
+  }
 }
 
 export default handler;

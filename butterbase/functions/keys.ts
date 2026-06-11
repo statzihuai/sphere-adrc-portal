@@ -21,7 +21,9 @@ async function sha256Hex(s: string): Promise<string> {
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function handler(req: Request, ctx: any): Promise<Response> {
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function handle(req: Request, ctx: any): Promise<Response> {
   if (!ctx.user) return json(401, { error: { type: "authentication_error", code: "missing_credentials" } });
 
   if (req.method === "POST") {
@@ -55,7 +57,7 @@ export async function handler(req: Request, ctx: any): Promise<Response> {
 
   if (req.method === "DELETE") {
     const id = new URL(req.url).searchParams.get("id");
-    if (!id) return json(400, { error: { type: "invalid_request_error", code: "missing_id" } });
+    if (!id || !UUID_RE.test(id)) return json(400, { error: { type: "invalid_request_error", code: "invalid_id" } });
     const r = await ctx.db.query(
       `UPDATE api_keys SET revoked_at = now()
         WHERE id = $1 AND revoked_at IS NULL
@@ -67,6 +69,15 @@ export async function handler(req: Request, ctx: any): Promise<Response> {
   }
 
   return json(405, { error: { type: "invalid_request_error", code: "method_not_allowed" } });
+}
+
+export async function handler(req: Request, ctx: any): Promise<Response> {
+  try {
+    return await handle(req, ctx);
+  } catch (e) {
+    console.error("unhandled keys error:", e);
+    return json(500, { error: { type: "api_error", code: "internal_error", message: "internal_error" } }); // never leak stack traces
+  }
 }
 
 export default handler;

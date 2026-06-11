@@ -14,7 +14,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
-export async function handler(req: Request, ctx: any): Promise<Response> {
+async function handle(req: Request, ctx: any): Promise<Response> {
   if (req.method !== "POST") return json(405, { ok: false });
   let p: any;
   try { p = await req.json(); } catch { return json(400, { ok: false }); }
@@ -22,20 +22,32 @@ export async function handler(req: Request, ctx: any): Promise<Response> {
   const email = typeof p?.user?.email === "string" ? p.user.email.toLowerCase() : null;
   if (typeof uid !== "string" || !UUID_RE.test(uid)) return json(400, { ok: false });
 
-  const claimed = await ctx.db.query(
-    `INSERT INTO trial_grants (user_id, email) VALUES ($1, $2)
-     ON CONFLICT (user_id) DO NOTHING RETURNING user_id`,
-    [uid, email],
+  // Claim + credit in ONE statement (one transaction): a crash can never burn
+  // the grant without funding the wallet. The additive ON CONFLICT lets the
+  // $10 land even when another path created the wallet row first.
+  const r = await ctx.db.query(
+    `WITH claim AS (
+       INSERT INTO trial_grants (user_id, email) VALUES ($1, $2)
+       ON CONFLICT (user_id) DO NOTHING RETURNING 1
+     )
+     INSERT INTO wallets (user_id, balance_microcents)
+     SELECT $1, CASE WHEN EXISTS (SELECT 1 FROM claim) THEN $3::bigint ELSE 0 END
+     ON CONFLICT (user_id) DO UPDATE
+       SET balance_microcents = wallets.balance_microcents + EXCLUDED.balance_microcents,
+           updated_at = now()
+     RETURNING (SELECT count(*) FROM claim) AS claimed`,
+    [uid, email, TRIAL_MICRO],
   );
-  if (claimed.rows.length) {
-    await ctx.db.query(
-      `INSERT INTO wallets (user_id, balance_microcents) VALUES ($1, $2)
-       ON CONFLICT (user_id) DO UPDATE
-         SET balance_microcents = wallets.balance_microcents + $2, updated_at = now()`,
-      [uid, TRIAL_MICRO],
-    );
+  return json(200, { ok: true, granted: Number(r.rows[0]?.claimed ?? 0) > 0 });
+}
+
+export async function handler(req: Request, ctx: any): Promise<Response> {
+  try {
+    return await handle(req, ctx);
+  } catch (e) {
+    console.error("unhandled on-auth error:", e);
+    return json(500, { ok: false }); // never leak stack traces
   }
-  return json(200, { ok: true, granted: claimed.rows.length > 0 });
 }
 
 export default handler;
