@@ -25,9 +25,14 @@ API = os.environ.get("BUTTERBASE_API", "https://api.butterbase.ai")
 APP = os.environ.get("BUTTERBASE_APP", "app_21ze8d0ep28o")
 EMAIL = os.environ["SPHERE_TEST_EMAIL2"]
 PASSWORD = os.environ["SPHERE_TEST_PASSWORD"]
-N = 16
-MODEL = "anthropic/claude-fable-5"   # $48/M output → big, predictable reserves
+# max_tokens must clear THREE ceilings or upstream rejects and every call lands
+# in the refund path (no settles): the app's maxTokensPerRequest cap, the
+# model's own output limit, and — discovered live — the PLATFORM's worst-case
+# credit check against the owner account (OWNER_AFFORDABLE_USD, default $0.90).
+MODEL = "anthropic/claude-fable-5"
 OUT_MICRO_PER_TOK = 48
+OWNER_AFFORDABLE_USD = float(os.environ.get("OWNER_AFFORDABLE_USD", "0.9"))
+MAX_TOKENS_CEILING = int(OWNER_AFFORDABLE_USD * 1_000_000) // OUT_MICRO_PER_TOK
 
 def http(path, body=None, headers=None, method=None):
     req = urllib.request.Request(
@@ -36,11 +41,17 @@ def http(path, body=None, headers=None, method=None):
         headers={"Content-Type": "application/json", **(headers or {})},
         method=method,
     )
+    def body_of(raw):
+        try:
+            b = json.loads(raw or b"{}")
+        except ValueError:
+            b = {}
+        return b if isinstance(b, dict) else {}  # edge can return bare JSON strings
     try:
         with urllib.request.urlopen(req) as r:
-            return r.status, json.load(r)
+            return r.status, body_of(r.read())
     except urllib.error.HTTPError as e:
-        return e.code, json.loads(e.read() or b"{}")
+        return e.code, body_of(e.read())
 
 def setup_key():
     code, login = http(f"/auth/{APP}/login", {"email": EMAIL, "password": PASSWORD})
@@ -81,16 +92,24 @@ async def main():
     assert balance(key) == start, "A FAIL: 402 path must not touch the balance"
     print("ok: phase A — oversized reserve -> 402, balance untouched")
 
-    # Phase B — N concurrent, ~1 reserve fits.
-    max_tokens = max(1, int(start * 0.9) // OUT_MICRO_PER_TOK - 200)
+    # Phase B — N concurrent, sized so contention is guaranteed: more in-flight
+    # calls than reserves that fit, with N scaled to the fit count.
+    max_tokens = min(MAX_TOKENS_CEILING, max(1, int(start * 0.45) // OUT_MICRO_PER_TOK - 200))
     req_body = {"model": MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": "hi"}]}
-    print(f"phase B: N={N} concurrent, max_tokens={max_tokens} (~1 reserve fits)")
+    fits = start // (max_tokens * OUT_MICRO_PER_TOK)
+    N = min(32, max(16, int(fits) * 2 + 4))
+    print(f"phase B: N={N} concurrent, max_tokens={max_tokens} (~{fits} reserves fit)")
 
     def call():
         return http(f"/v1/{APP}/fn/gateway", req_body, {"Authorization": f"Bearer {key}"})
 
     results = await asyncio.gather(*[asyncio.to_thread(call) for _ in range(N)])
-    n402 = sum(1 for c, b in results if c == 402 and b.get("error", {}).get("code") == "insufficient_credits")
+
+    def err_code(b):
+        e = b.get("error")
+        return e.get("code") if isinstance(e, dict) else None  # `error` can be a bare string
+
+    n402 = sum(1 for c, b in results if c == 402 and err_code(b) == "insufficient_credits")
     settled = [(c, b) for c, b in results if c == 200 and "usage" in b]
     for c, b in results:
         assert c in (200, 401, 402, 502), f"B FAIL: unexpected status {c}: {b}"
@@ -109,7 +128,7 @@ async def main():
         assert n402 >= 1, "C FAIL: settled mode but guard never fired under 16-way contention"
         print(f"ok: phase C — guard fired {n402}x under contention")
     else:
-        print("skip: phase C — refund mode (upstream owner key unset); rerun after update_env")
+        print("skip: phase C — no calls settled (owner key unset, or model/params rejected upstream)")
     print("gate 3 PASS")
 
 asyncio.run(main())

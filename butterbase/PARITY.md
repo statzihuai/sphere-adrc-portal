@@ -60,6 +60,17 @@ platform consumes Stripe webhooks (crediting had to become claim-based, §4.6 am
 end-user 402s spend *our* gateway credits at a 20% markup — the wallet meters end users, but the
 bill lands on the platform account.
 
+**Owner-credit coupling (discovered in settled-mode e2e).** The platform runs its own worst-case
+credit check per request against the OWNER account (`required_usd` vs `available_usd`), upfront —
+not against actuals. Practical consequence: the owner balance must cover the worst case of the
+largest single request, and effectively scales with concurrent end-user load (concurrent requests
+each pre-check against the same balance). With $1.00 of owner credits, any request whose ceiling
+exceeds ~$1 is rejected upstream regardless of the end user's funded wallet. The gateway maps that
+upstream 402 to `502 upstream_credits_exhausted` so customers are never told their wallet is empty
+when it's the operator's account. For production this means prepaying/auto-refilling owner credits
+sized to peak concurrency × max request ceiling — a real operational coupling the FastAPI build
+(direct Anthropic, postpaid) does not have.
+
 **Verdict so far.** The two-key model works end-to-end on Butterbase with ~6× less backend code,
 but the latency overhead and the markup are both product-visible. If SPHERE's product is an
 interactive agent, the FastAPI direct-passthrough path keeps a decisive UX edge; if it's batch/API
@@ -71,8 +82,8 @@ metering, the Butterbase build is genuinely competitive on effort.
 |---|---|
 | 1 schema + RLS | **pass** (`gate1_schema.sh`) |
 | 2 key lifecycle + revoked-key rejection | **pass** (`gate2_keys.sh`, `gate4_gateway.sh`) |
-| 3 wallet invariant under concurrency | **pass** — conservation exact, never negative, guard fired 8/16 under contention (`gate3_concurrency.py`); strict settled-mode phase auto-activates once the owner key is set |
-| 4 metering accuracy | **machinery verified** (refund path bit-exact); usage-derived debit assertion pending owner key |
+| 3 wallet invariant under concurrency | **pass, settled mode** — real settle, conservation bit-exact (10,000,000 − 1,661 == 9,998,339), 402 guard fired 7× under contention, never negative (`gate3_concurrency.py`) |
+| 4 metering accuracy | **pass** — known prompt debited the wallet by exactly the usage-derived cost (10 µ and 38 µ runs), verified against `/v1/public/models` pricing (`gate4_gateway.sh`) |
 | 5 money-in idempotent crediting | **machinery deployed + negative paths pass**; full loop pending Stripe Connect onboarding + product creation |
-| 6 SDKs | **pass** (10 py + 8 ts unit tests; live balance/402/401/models against the deployment) |
+| 6 SDKs | **pass, e2e** — unit suites plus a live customer-shaped run: balance → chat call → balance delta == usage-derived cost exactly |
 | 7 parity report | this document (latency/cost FastAPI columns pending a deployed comparison instance) |

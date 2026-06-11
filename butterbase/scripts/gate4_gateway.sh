@@ -51,16 +51,17 @@ if [ "$code" != 200 ]; then
 fi
 
 B1=$(curl -sS "$FN/balance" -H "Authorization: Bearer $SPHERE_KEY" | python3 -c 'import json,sys;print(json.load(sys.stdin)["balance_microcents"])')
-echo "$resp" | python3 - "$B0" "$B1" <<'EOF'
+# NB: program must be in -c, not a heredoc — `python3 - <<EOF` would clobber the piped stdin.
+echo "$resp" | python3 -c '
 import json, sys, math, urllib.request
 resp = json.load(sys.stdin); b0, b1 = int(sys.argv[1]), int(sys.argv[2])
 u = resp["usage"]
-cat = json.load(urllib.request.urlopen("https://api.butterbase.ai/v1/public/models"))
+cat = json.load(urllib.request.urlopen(sys.argv[3] + "/v1/public/models"))
 m = next(x for x in cat["models"] if x["id"] == resp["model"])
 inM, outM = round(m["inputPricePerMTokens"]*1e6), round(m["outputPricePerMTokens"]*1e6)
 cost = math.ceil(u["prompt_tokens"]*inM/1e6) + math.ceil(u["completion_tokens"]*outM/1e6)
 debited = b0 - b1
 assert debited == cost, f"FAIL: debited {debited} != usage-derived {cost}"
-print(f"ok: metering exact — debited {debited} micro-units == usage-derived cost")
-EOF
+print(f"ok: metering exact — debited {debited} micro-units == usage-derived cost {cost}")
+' "$B0" "$B1" "$API"
 echo "gateway gates PASS"

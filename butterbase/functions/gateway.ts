@@ -136,6 +136,14 @@ async function handle(req: Request, ctx: any): Promise<Response> {
     console.error("upstream auth failed — OWNER_GATEWAY_KEY misconfigured or revoked");
     return err(502, "api_error", "upstream_misconfigured", "gateway upstream auth failed (operator issue, not your key)");
   }
+  if (up.status === 402) {
+    // The PLATFORM account is out of credits (it runs its own worst-case
+    // check per request) — the caller's wallet is fine. Surfacing 402 here
+    // would make SDKs raise InsufficientCreditsError at a funded customer.
+    await refund(reserve);
+    console.error("upstream 402 — platform account credits exhausted for this request's worst case");
+    return err(502, "api_error", "upstream_credits_exhausted", "gateway provider account low on credits (operator issue, not your wallet)");
+  }
   if (!up.ok || !out?.usage) {
     await refund(reserve); // upstream error: full reclaim, pass the error through (§5)
     return json(up.status, out ?? { error: { type: "api_error", code: "upstream_error", message: "upstream_error" } });
