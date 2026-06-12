@@ -1,0 +1,56 @@
+{
+  "tables": {
+    "wallets": {
+      "columns": {
+        "user_id": { "type": "uuid", "primaryKey": true },
+        "balance_microcents": { "type": "bigint", "nullable": false, "default": "0" },
+        "updated_at": { "type": "timestamptz", "default": "now()" }
+      }
+    },
+    "api_keys": {
+      "columns": {
+        "id": { "type": "uuid", "primaryKey": true, "default": "gen_random_uuid()" },
+        "user_id": { "type": "uuid", "nullable": false },
+        "key_hash": { "type": "text", "nullable": false, "unique": true },
+        "key_prefix": { "type": "text", "nullable": false },
+        "name": { "type": "text" },
+        "scopes": { "type": "text", "default": "'ai:gateway'" },
+        "revoked_at": { "type": "timestamptz" },
+        "last_used_at": { "type": "timestamptz" },
+        "created_at": { "type": "timestamptz", "default": "now()" }
+      },
+      "indexes": { "idx_api_keys_user": { "columns": ["user_id"] } }
+    },
+    "usage_log": {
+      "columns": {
+        "id": { "type": "uuid", "primaryKey": true, "default": "gen_random_uuid()" },
+        "api_key_id": { "type": "uuid", "nullable": false, "references": { "table": "api_keys", "column": "id", "onDelete": "CASCADE" } },
+        "user_id": { "type": "uuid", "nullable": false },
+        "model": { "type": "text", "nullable": false },
+        "input_tokens": { "type": "integer", "default": "0" },
+        "output_tokens": { "type": "integer", "default": "0" },
+        "cost_microcents": { "type": "bigint", "nullable": false },
+        "elapsed_ms": { "type": "integer" },
+        "created_at": { "type": "timestamptz", "default": "now()" }
+      },
+      "indexes": { "idx_usage_user_time": { "columns": ["user_id", "created_at"] } }
+    },
+    "credit_orders": {
+      "columns": {
+        "id": { "type": "uuid", "primaryKey": true, "default": "gen_random_uuid()" },
+        "user_id": { "type": "uuid", "nullable": false },
+        "stripe_session_id": { "type": "text", "nullable": false, "unique": true },
+        "amount_microcents": { "type": "bigint", "nullable": false },
+        "status": { "type": "text", "nullable": false, "default": "'pending'" },
+        "created_at": { "type": "timestamptz", "default": "now()" }
+      }
+    },
+    "trial_grants": {
+      "columns": {
+        "user_id": { "type": "uuid", "primaryKey": true },
+        "email": { "type": "text" },
+        "granted_at": { "type": "timestamptz", "default": "now()" }
+      }
+    }
+  }
+}
